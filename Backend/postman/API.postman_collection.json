@@ -1,0 +1,226 @@
+{
+    "info": {
+      "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "M-PESA Daraja API",
+      "description": "Collection for testing M-PESA Daraja API integration",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Authentication",
+        "item": [
+          {
+            "name": "Get Access Token",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/api/mpesa/token",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "mpesa",
+                  "token"
+                ]
+              },
+              "description": "Get OAuth access token for authentication"
+            },
+            "response": []
+          }
+        ],
+        "description": "Authentication endpoints"
+      },
+      {
+        "name": "STK Push",
+        "item": [
+          {
+            "name": "Initiate STK Push",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\\\n    \"phoneNumber\": \"0712345678\",\\\n    \"amount\": 1,\\\n    \"accountReference\": \"Test Payment\",\\\n    \"transactionDesc\": \"Test Payment\"\\\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/mpesa/stk-push",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "mpesa",
+                  "stk-push"
+                ]
+              },
+              "description": "Initiate STK push to customer's phone"
+            },
+            "response": []
+          },
+          {
+            "name": "STK Push Query",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\\\n    \"checkoutRequestId\": \"ws_CO_260420251234567890\"\\\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/mpesa/stk-query",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "mpesa",
+                  "stk-query"
+                ]
+              },
+              "description": "Check status of STK push transaction"
+            },
+            "response": []
+          }
+        ],
+        "description": "STK Push endpoints"
+      },
+      {
+        "name": "C2B",
+        "item": [
+          {
+            "name": "Register C2B URLs",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\\\n    \"confirmationUrl\": \"https://example.com/api/mpesa/c2b-confirmation\",\\\n    \"validationUrl\": \"https://example.com/api/mpesa/c2b-validation\",\\\n    \"responseType\": \"Completed\"\\\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/mpesa/register-c2b",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "mpesa",
+                  "register-c2b"
+                ]
+              },
+              "description": "Register confirmation and validation URLs for C2B"
+            },
+            "response": []
+          },
+          {
+            "name": "C2B Simulation",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\\\n    \"phoneNumber\": \"0712345678\",\\\n    \"amount\": 1,\\\n    \"billRefNumber\": \"Test123\",\\\n    \"commandId\": \"CustomerPayBillOnline\"\\\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/mpesa/c2b-simulate",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "mpesa",
+                  "c2b-simulate"
+                ]
+              },
+              "description": "Simulate C2B transaction (sandbox only)"
+            },
+            "response": []
+          }
+        ],
+        "description": "C2B endpoints"
+      },
+      {
+        "name": "B2C",
+        "item": [
+          {
+            "name": "B2C Payment",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\\\n    \"phoneNumber\": \"0712345678\",\\\n    \"amount\": 1,\\\n    \"commandId\": \"BusinessPayment\",\\\n    \"remarks\": \"Test Payment\",\\\n    \"occasion\": \"Test\"\\\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/mpesa/b2c-payment",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "mpesa",
+                  "b2c-payment"
+                ]
+              },
+              "description": "Send money from business to customer"
+            },
+            "response": []
+          }
+        ],
+        "description": "B2C endpoints"
+      }
+    ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            ""
+          ]
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            ""
+          ]
+        }
+      }
+    ],
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "http://localhost:5000",
+        "type": "string"
+      }
+    ]
+  }
