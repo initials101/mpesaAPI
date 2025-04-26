@@ -3,7 +3,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import mpesaRoutes from './routes.mpesa.js';
+import mpesaRoutes from './routes/mpesa.routes.js';
 
 // Load environment variables
 dotenv.config();

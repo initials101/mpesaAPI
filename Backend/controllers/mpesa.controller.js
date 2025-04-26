@@ -1,4 +1,4 @@
-import { MpesaService } from './services.mpesa.js';
+import { MpesaService } from '../services/mpesa.service.js';
 
 export const MpesaController = {
   /**

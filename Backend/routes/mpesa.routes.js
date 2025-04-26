@@ -1,5 +1,5 @@
 import express from 'express';
-import { MpesaController } from './controllers.mpesa.js';
+import { MpesaController } from '../controllers/mpesa.controller.js';
 
 const router = express.Router();
 

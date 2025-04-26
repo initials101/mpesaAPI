@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { mpesaConfig, getBaseUrl } from './config.mpesa.js';
+import { mpesaConfig, getBaseUrl } from '../config/mpesa.config.js';
 
 // In-memory token storage (in production, use Redis or another cache)
 let accessToken = null;
