@@ -1,16 +1,26 @@
-# M-PESA Daraja API Integration
+# M-Pesa Payment API
 
-A Node.js backend for integrating with Safaricom's M-PESA Daraja API using ES modules.
+A secure, scalable, and developer-friendly Node.js API for integrating with the M-Pesa payment system.
 
 ## Features
 
-- Environment configuration for Daraja API credentials
-- Authentication with Daraja API (OAuth token generation)
-- STK Push (Lipa Na M-Pesa Online) implementation
-- Transaction status checking
-- C2B (Customer to Business) registration and simulation
-- B2C (Business to Customer) payment implementation
-- Transaction result handling with webhooks
+- **M-Pesa API Authentication**: Secure OAuth token generation with automatic refresh
+- **STK Push (Lipa Na M-Pesa Online)**: Initiate customer payments directly from your application
+- **B2C Payments**: Send money from your business to customers, suppliers, or employees
+- **Transaction Status Query**: Check the status of transactions to verify completion
+- **Secure Webhook Handling**: Process M-Pesa callbacks securely with signature verification
+- **Comprehensive Error Handling**: Detailed error responses and logging
+- **Environment-Based Configuration**: Separate development and production settings
+
+## Security Features
+
+- Environment variables for sensitive configuration
+- Encryption of sensitive data
+- Input validation for all API endpoints
+- Secure webhook signature verification
+- Rate limiting to prevent abuse
+- Security headers with Helmet
+- CORS protection
 
 ## Getting Started
 
@@ -18,78 +28,114 @@ A Node.js backend for integrating with Safaricom's M-PESA Daraja API using ES mo
 
 - Node.js 14.x or higher
 - npm or yarn
-- M-PESA Daraja API credentials (Consumer Key and Secret)
+- M-Pesa API credentials (Consumer Key, Consumer Secret, etc.)
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/mpesa-api.git
+   cd mpesa-api
+   ```
+
 2. Install dependencies:
    ```bash
    npm install
    ```
-3. Copy the example environment file and update with your credentials:
+
+3. Create a `.env` file based on `.env.example`:
    ```bash
    cp .env.example .env
    ```
-4. Update the `.env` file with your Daraja API credentials
 
-### Running the Server
+4. Update the `.env` file with your M-Pesa API credentials and other configuration.
 
-Development mode:
+5. Start the server:
+   ```bash
+   npm start
+   ```
+
+## API Endpoints
+
+### STK Push (Lipa Na M-Pesa Online)
+
+```
+POST /api/v1/mpesa/stk-push
+```
+
+Request body:
+```json
+{
+  "phoneNumber": "254712345678",
+  "amount": 1,
+  "accountReference": "ORDER123",
+  "transactionDesc": "Payment for order #123"
+}
+```
+
+### B2C Payment
+
+```
+POST /api/v1/mpesa/b2c
+```
+
+Request body:
+```json
+{
+  "phoneNumber": "254712345678",
+  "amount": 100,
+  "commandID": "BusinessPayment",
+  "remarks": "Salary payment",
+  "occassion": "Monthly salary"
+}
+```
+
+### Query Transaction Status
+
+```
+POST /api/v1/mpesa/transaction-status
+```
+
+Request body:
+```json
+{
+  "transactionID": "OEI2AK4Q16",
+  "identifierType": 1
+}
+```
+
+## Webhook Endpoints
+
+### STK Push Callback
+
+```
+POST /api/v1/mpesa/callbacks/stk
+```
+
+### B2C Result
+
+```
+POST /api/v1/mpesa/callbacks/b2c/result
+```
+
+### B2C Timeout
+
+```
+POST /api/v1/mpesa/callbacks/b2c/timeout
+```
+
+## Development
+
+### Running in Development Mode
+
 ```bash
 npm run dev
 ```
 
-Production mode:
-```bash
-npm start
-```
-
-## API Endpoints
-
-### Authentication
-- `GET /api/mpesa/token` - Get OAuth access token
-
-### STK Push
-- `POST /api/mpesa/stk-push` - Initiate STK push
-- `POST /api/mpesa/stk-query` - Check STK push status
-
-### C2B
-- `POST /api/mpesa/register-c2b` - Register C2B URLs
-- `POST /api/mpesa/c2b-simulate` - Simulate C2B transaction (sandbox only)
-
-### B2C
-- `POST /api/mpesa/b2c-payment` - Send B2C payment
-
-### Callback URLs
-- `POST /api/mpesa/stk-callback` - STK push callback
-- `POST /api/mpesa/c2b-validation` - C2B validation
-- `POST /api/mpesa/c2b-confirmation` - C2B confirmation
-- `POST /api/mpesa/b2c-result` - B2C result
-- `POST /api/mpesa/b2c-timeout` - B2C timeout
-
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| MPESA_ENV | Environment (sandbox or production) |
-| CONSUMER_KEY | Daraja API Consumer Key |
-| CONSUMER_SECRET | Daraja API Consumer Secret |
-| MPESA_SHORTCODE | M-PESA Shortcode |
-| MPESA_PASSKEY | M-PESA Passkey |
-| INITIATOR_NAME | B2C Initiator Name |
-| SECURITY_CREDENTIAL | B2C Security Credential |
-| CALLBACK_URL | STK Push Callback URL |
-| CONFIRMATION_URL | C2B Confirmation URL |
-| VALIDATION_URL | C2B Validation URL |
-| B2C_RESULT_URL | B2C Result URL |
-| B2C_TIMEOUT_URL | B2C Timeout URL |
-| PORT | Server Port |
-
-## Testing with Postman
-
-You can use the included Postman collection to test the API endpoints.
-
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgements
+
+- [Safaricom M-Pesa API Documentation](https://developer.safaricom.co.ke/)
