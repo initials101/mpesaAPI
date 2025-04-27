@@ -14,13 +14,13 @@ export const validateRequest = (schema) => {
       allowUnknown: true, // Ignore unknown props
       stripUnknown: true // Remove unknown props
     };
-    
+
     // Validate request against schema
     const { error, value } = schema.validate(
       {
-        body: req.body,
-        query: req.query,
-        params: req.params
+        body: req.body || {},  // Prevent errors if body is undefined
+        query: req.query || {},  // Prevent errors if query is undefined
+        params: req.params || {}  // Prevent errors if params are undefined
       },
       validationOptions
     );
@@ -31,7 +31,7 @@ export const validateRequest = (schema) => {
         path: detail.path.join('.'),
         message: detail.message
       }));
-      
+
       return next(new ApiError(400, 'Validation Error', true, { errors }));
     }
     

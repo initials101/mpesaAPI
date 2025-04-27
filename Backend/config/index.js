@@ -14,7 +14,7 @@ const config = {
   // Server configuration
   env: process.env.NODE_ENV || 'development',
   server: {
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 5000
   },
   
   // Database configuration
