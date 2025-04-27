@@ -35,10 +35,10 @@ export const validateRequest = (schema) => {
       return next(new ApiError(400, 'Validation Error', true, { errors }));
     }
     
-    // Update req with validated values
-    req.body = value.body;
-    req.query = value.query;
-    req.params = value.params;
+    // Assign validated values to req.body, req.query, and req.params using a copy
+    req.validatedBody = value.body;
+    req.validatedQuery = value.query;
+    req.validatedParams = value.params;
     
     return next();
   };
