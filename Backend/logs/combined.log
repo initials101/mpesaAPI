@@ -94,3 +94,41 @@
 {"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 20:09:32"}
 {"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 20:09:33"}
 {"amount":1000,"level":"info","message":"Initiating STK Push:","phoneNumber":"254112395869","reference":"ORDER1234","service":"mpesa-api","timestamp":"2025-04-28 20:09:33"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-01.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 22:20:13"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:20:13"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-02.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 22:22:52"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:22:52"}
+{"level":"warn","message":"Expected property name or '}' in JSON at position 1 (line 1 column 2)","method":"POST","path":"/api/payments/stk-push","service":"mpesa-api","statusCode":400,"timestamp":"2025-04-28 22:24:05"}
+{"level":"warn","message":"Not found - /api/payments/stk-push","method":"POST","path":"/api/payments/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:24:53"}
+{"accountReference":"ORDER1234","amount":1000,"level":"info","message":"STK Push request received","phoneNumber":"254112395869","service":"mpesa-api","timestamp":"2025-04-28 22:25:23"}
+{"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:25:23"}
+{"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:25:24"}
+{"amount":1000,"level":"info","message":"Initiating STK Push:","phoneNumber":"254112395869","reference":"ORDER1234","service":"mpesa-api","timestamp":"2025-04-28 22:25:24"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-02.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 22:27:26"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:27:26"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-00.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 22:27:32"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:27:32"}
+{"level":"warn","message":"Not found - /api/payments/stk-push","method":"POST","path":"/api/payments/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:27:40"}
+{"level":"warn","message":"Not found - /api/payments/stk-push","method":"POST","path":"/api/payments/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:27:43"}
+{"level":"warn","message":"Not found - /api/payments/stk-push","method":"POST","path":"/api/payments/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:27:44"}
+{"level":"warn","message":"Not found - /api/payments/stk-push","method":"POST","path":"/api/payments/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:27:50"}
+{"level":"warn","message":"Not found - /api/payments/stk-push","method":"POST","path":"/api/payments/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:27:52"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-02.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 22:28:15"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:28:15"}
+{"level":"warn","message":"Not found - /api/mpesa/stk-push","method":"POST","path":"/api/mpesa/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:28:24"}
+{"level":"warn","message":"Not found - /api/mpesa/stk-push","method":"POST","path":"/api/mpesa/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:28:26"}
+{"level":"warn","message":"Not found - /api/mpesa/stk-push","method":"POST","path":"/api/mpesa/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:28:26"}
+{"accountReference":"ORDER1234","amount":1000,"level":"info","message":"STK Push request received","phoneNumber":"254112395869","service":"mpesa-api","timestamp":"2025-04-28 22:28:39"}
+{"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:28:39"}
+{"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:28:39"}
+{"amount":1000,"level":"info","message":"Initiating STK Push:","phoneNumber":"254112395869","reference":"ORDER1234","service":"mpesa-api","timestamp":"2025-04-28 22:28:39"}
+{"level":"warn","message":"Not found - /api/mpesa/stk-push","method":"POST","path":"/api/mpesa/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:29:18"}
+{"level":"warn","message":"Not found - /api/mpesa/stk-push","method":"POST","path":"/api/mpesa/stk-push","service":"mpesa-api","statusCode":404,"timestamp":"2025-04-28 22:29:20"}
+{"accountReference":"TEST123","amount":1,"level":"info","message":"STK Push request received","phoneNumber":"0112395869","service":"mpesa-api","timestamp":"2025-04-28 22:31:03"}
+{"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:31:03"}
+{"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:31:04"}
+{"amount":1,"level":"info","message":"Initiating STK Push:","phoneNumber":"254112395869","reference":"TEST123","service":"mpesa-api","timestamp":"2025-04-28 22:31:04"}
+{"amount":100,"commandID":"BusinessPayment","level":"info","message":"B2C payment request received","phoneNumber":"0112395869","service":"mpesa-api","timestamp":"2025-04-28 22:32:31"}
+{"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:32:31"}
+{"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:32:32"}
+{"amount":100,"level":"info","message":"Sending B2C payment:","phoneNumber":"254112395869","service":"mpesa-api","timestamp":"2025-04-28 22:32:32","transactionID":"B2C1745868752244506"}

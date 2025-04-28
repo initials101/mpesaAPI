@@ -70,7 +70,7 @@ async function checkMpesaCredentials() {
       console.error('Error:', error.message);
     }
     
-    console.error('\\nPossible issues:');
+    console.error('\\\nPossible issues:');
     console.error('1. Incorrect consumer key or secret');
     console.error('2. Incorrect base URL');
     console.error('3. Network connectivity issues');

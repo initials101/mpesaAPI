@@ -1,226 +1,192 @@
 {
-    "info": {
-      "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "name": "M-PESA Daraja API",
-      "description": "Collection for testing M-PESA Daraja API integration",
-      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  "info": {
+    "_postman_id": "a8e7b5f2-3c4d-4e5f-9a0b-1c2d3e4f5a6b",
+    "name": "M-Pesa API",
+    "description": "A collection for testing the M-Pesa Payment API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the API is running"
+      },
+      "response": []
     },
-    "item": [
-      {
-        "name": "Authentication",
-        "item": [
+    {
+      "name": "STK Push",
+      "request": {
+        "method": "POST",
+        "header": [
           {
-            "name": "Get Access Token",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/api/mpesa/token",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "mpesa",
-                  "token"
-                ]
-              },
-              "description": "Get OAuth access token for authentication"
-            },
-            "response": []
+            "key": "Content-Type",
+            "value": "application/json"
           }
         ],
-        "description": "Authentication endpoints"
+        "body": {
+          "mode": "raw",
+          "raw": "{\\n    \"phoneNumber\": \"0112395869\",\\n    \"amount\": 1,\\n    \"accountReference\": \"TEST123\",\\n    \"transactionDesc\": \"Test Payment\"\\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/payments/stk-push",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "payments", "stk-push"]
+        },
+        "description": "Initiate an STK Push request to a customer's phone"
       },
-      {
-        "name": "STK Push",
-        "item": [
+      "response": []
+    },
+    {
+      "name": "B2C Payment",
+      "request": {
+        "method": "POST",
+        "header": [
           {
-            "name": "Initiate STK Push",
-            "request": {
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\\\n    \"phoneNumber\": \"0712345678\",\\\n    \"amount\": 1,\\\n    \"accountReference\": \"Test Payment\",\\\n    \"transactionDesc\": \"Test Payment\"\\\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/mpesa/stk-push",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "mpesa",
-                  "stk-push"
-                ]
-              },
-              "description": "Initiate STK push to customer's phone"
-            },
-            "response": []
-          },
-          {
-            "name": "STK Push Query",
-            "request": {
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\\\n    \"checkoutRequestId\": \"ws_CO_260420251234567890\"\\\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/mpesa/stk-query",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "mpesa",
-                  "stk-query"
-                ]
-              },
-              "description": "Check status of STK push transaction"
-            },
-            "response": []
+            "key": "Content-Type",
+            "value": "application/json"
           }
         ],
-        "description": "STK Push endpoints"
+        "body": {
+          "mode": "raw",
+          "raw": "{\\n    \"phoneNumber\": \"0112395869\",\\n    \"amount\": 100,\\n    \"commandID\": \"BusinessPayment\",\\n    \"remarks\": \"Salary payment\",\\n    \"occassion\": \"Monthly salary\"\\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/payments/b2c",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "payments", "b2c"]
+        },
+        "description": "Send money from your business to a customer"
       },
-      {
-        "name": "C2B",
-        "item": [
+      "response": []
+    },
+    {
+      "name": "Transaction Status",
+      "request": {
+        "method": "POST",
+        "header": [
           {
-            "name": "Register C2B URLs",
-            "request": {
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\\\n    \"confirmationUrl\": \"https://example.com/api/mpesa/c2b-confirmation\",\\\n    \"validationUrl\": \"https://example.com/api/mpesa/c2b-validation\",\\\n    \"responseType\": \"Completed\"\\\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/mpesa/register-c2b",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "mpesa",
-                  "register-c2b"
-                ]
-              },
-              "description": "Register confirmation and validation URLs for C2B"
-            },
-            "response": []
-          },
-          {
-            "name": "C2B Simulation",
-            "request": {
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\\\n    \"phoneNumber\": \"0712345678\",\\\n    \"amount\": 1,\\\n    \"billRefNumber\": \"Test123\",\\\n    \"commandId\": \"CustomerPayBillOnline\"\\\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/mpesa/c2b-simulate",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "mpesa",
-                  "c2b-simulate"
-                ]
-              },
-              "description": "Simulate C2B transaction (sandbox only)"
-            },
-            "response": []
+            "key": "Content-Type",
+            "value": "application/json"
           }
         ],
-        "description": "C2B endpoints"
+        "body": {
+          "mode": "raw",
+          "raw": "{\\n    \"transactionID\": \"OEI2AK4Q16\",\\n    \"identifierType\": 1\\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/payments/transaction-status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "payments", "transaction-status"]
+        },
+        "description": "Check the status of a transaction"
       },
-      {
-        "name": "B2C",
-        "item": [
-          {
-            "name": "B2C Payment",
-            "request": {
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\\\n    \"phoneNumber\": \"0712345678\",\\\n    \"amount\": 1,\\\n    \"commandId\": \"BusinessPayment\",\\\n    \"remarks\": \"Test Payment\",\\\n    \"occasion\": \"Test\"\\\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/mpesa/b2c-payment",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "mpesa",
-                  "b2c-payment"
-                ]
-              },
-              "description": "Send money from business to customer"
+      "response": []
+    },
+    {
+      "name": "Get All Transactions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/payments/transactions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "payments", "transactions"],
+          "query": [
+            {
+              "key": "status",
+              "value": "COMPLETED",
+              "disabled": true
             },
-            "response": []
-          }
-        ],
-        "description": "B2C endpoints"
-      }
-    ],
-    "event": [
-      {
-        "listen": "prerequest",
-        "script": {
-          "type": "text/javascript",
-          "exec": [
-            ""
+            {
+              "key": "type",
+              "value": "STK_PUSH",
+              "disabled": true
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "disabled": true
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "disabled": true
+            }
           ]
-        }
+        },
+        "description": "Get all transactions with optional filtering"
       },
-      {
-        "listen": "test",
-        "script": {
-          "type": "text/javascript",
-          "exec": [
-            ""
+      "response": []
+    },
+    {
+      "name": "Get Transaction by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/payments/transactions/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "payments", "transactions", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "transaction_id_here"
+            }
           ]
-        }
+        },
+        "description": "Get a specific transaction by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Transactions by Reference",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/payments/transactions/reference/:reference",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "payments", "transactions", "reference", ":reference"],
+          "variable": [
+            {
+              "key": "reference",
+              "value": "TEST123"
+            }
+          ]
+        },
+        "description": "Get transactions by reference"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
       }
-    ],
-    "variable": [
-      {
-        "key": "baseUrl",
-        "value": "http://localhost:5000",
-        "type": "string"
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
       }
-    ]
-  }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ]
+}
