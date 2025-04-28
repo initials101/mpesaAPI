@@ -52,7 +52,7 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 
 5. Start the server:
    ```bash
-   npm run dev
+   npm start
    ```
 
 ## API Documentation
@@ -241,11 +241,51 @@ The API uses a standardized error response format:
 }
 ```
 
+## Contributing
+
+Contributions are welcome! Here's how you can contribute to the mpesaAPI project:
+
+1. **Fork the repository**
+   - Create your own fork of the project
+
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+
+3. **Commit your changes**
+   ```bash
+   git commit -m 'Add some amazing feature'
+   ```
+
+4. **Push to the branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+
+5. **Open a Pull Request**
+   - Ensure your PR description clearly describes the changes and benefits
+   - Link any related issues
+
+### Coding Standards
+
+- Follow the existing code style
+- Write tests for new features
+- Update documentation as needed
+- Keep commits focused and descriptive
+
+### Issues and Bugs
+
+If you find a bug or have a feature request, please open an issue first to discuss what you would like to change.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Developer
+
+This project is developed and maintained by [Dennis](https://dennisportfolio-theta.vercel.app/) - Check out my portfolio for more projects and contact information.
+
 ## Acknowledgements
 
 - [Safaricom M-Pesa API Documentation](https://developer.safaricom.co.ke/)
-
