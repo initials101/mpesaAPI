@@ -132,3 +132,5 @@
 {"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:32:31"}
 {"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-28 22:32:32"}
 {"amount":100,"level":"info","message":"Sending B2C payment:","phoneNumber":"254112395869","service":"mpesa-api","timestamp":"2025-04-28 22:32:32","transactionID":"B2C1745868752244506"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-02.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 22:36:48"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:36:48"}
