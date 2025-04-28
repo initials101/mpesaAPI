@@ -29,7 +29,7 @@ if (config.env === 'development') {
 }
 
 // API routes
-app.use('/api/v1/mpesa', mpesaRoutes);
+app.use('/api/v1/payments', mpesaRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
