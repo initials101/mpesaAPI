@@ -24,7 +24,7 @@ const config = {
   
   // Database configuration
   database: {
-    uri: process.env.MONGODB_URI || 'mongodb+srv://mpesa:mpesa@cluster0.vk6hawu.mongodb.net/mpesaAPI',
+    uri: process.env.MONGODB_URI,
     options: {
       useNewUrlParser: true,
       useUnifiedTopology: true

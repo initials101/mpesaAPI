@@ -84,3 +84,5 @@
 {"level":"error","message":"Username and password are required for Basic Auth","service":"mpesa-api","timestamp":"2025-04-28 19:47:44"}
 {"level":"error","message":"Failed to authenticate with M-Pesa API","service":"mpesa-api","timestamp":"2025-04-28 19:47:44"}
 {"error":{"statusCode":500},"level":"error","message":"Failed to initiate STK Push: Failed to authenticate with M-Pesa API","method":"POST","path":"/api/v1/mpesa/stk-push","service":"mpesa-api","stack":"Error: Failed to initiate STK Push: Failed to authenticate with M-Pesa API\n    at MpesaService.initiateSTKPush (file:///home/gray/projects/mpesaAPI/Backend/services/mpesa.service.js:161:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///home/gray/projects/mpesaAPI/Backend/controllers/mpesa.controller.js:24:20","timestamp":"2025-04-28 19:47:44"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-02.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 19:53:14"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 19:53:14"}
