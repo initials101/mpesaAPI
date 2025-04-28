@@ -34,8 +34,8 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/mpesa-api.git
-   cd mpesa-api
+   git clone https://github.com/your-username/mpesaAPI.git
+   cd mpesaAPI
    ```
 
 2. Install dependencies:
@@ -52,7 +52,7 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 
 5. Start the server:
    ```bash
-   npm start
+   npm run dev
    ```
 
 ## API Documentation
@@ -248,3 +248,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgements
 
 - [Safaricom M-Pesa API Documentation](https://developer.safaricom.co.ke/)
+
