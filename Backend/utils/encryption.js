@@ -70,6 +70,9 @@ export const decrypt = (encryptedText, key = config.security.jwtSecret) => {
  * @returns {string} - Base64 encoded auth string
  */
 export const generateBasicAuthString = (username, password) => {
+  if (!username || !password) {
+    throw new Error('Username and password are required for Basic Auth');
+  }
   return Buffer.from(`${username}:${password}`).toString('base64');
 };
 
@@ -82,6 +85,9 @@ export const generateBasicAuthString = (username, password) => {
  * @returns {string} - Base64 encoded password
  */
 export const generateStkPushPassword = (shortCode, passkey, timestamp) => {
+  if (!shortCode || !passkey || !timestamp) {
+    throw new Error('ShortCode, passkey and timestamp are required for STK Push password');
+  }
   const password = `${shortCode}${passkey}${timestamp}`;
   return Buffer.from(password).toString('base64');
 };

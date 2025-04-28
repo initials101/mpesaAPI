@@ -10,6 +10,11 @@ const __dirname = path.dirname(__filename);
 const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.env.development';
 dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 
+// Fallback to .env if .env.development doesn't exist
+if (process.env.NODE_ENV !== 'production' && !process.env.MPESA_CONSUMER_KEY) {
+  dotenv.config({ path: path.resolve(__dirname, '../../', '.env') });
+}
+
 const config = {
   // Server configuration
   env: process.env.NODE_ENV || 'development',
@@ -45,7 +50,7 @@ const config = {
   
   // Security configuration
   security: {
-    jwtSecret: process.env.JWT_SECRET,
+    jwtSecret: process.env.JWT_SECRET || 'default-dev-secret-do-not-use-in-production',
     tokenExpiry: process.env.TOKEN_EXPIRY || '1h',
     saltRounds: parseInt(process.env.SALT_ROUNDS || '10', 10),
     skipWebhookVerification: process.env.SKIP_WEBHOOK_VERIFICATION === 'true'
@@ -76,12 +81,20 @@ const validateConfig = () => {
   const missingConfig = requiredMpesaConfig.filter(key => !config.mpesa[key]);
   
   if (missingConfig.length > 0) {
-    throw new Error(`Missing required M-Pesa configuration: ${missingConfig.join(', ')}`);
+    console.error('Missing required M-Pesa configuration:', missingConfig.join(', '));
+    console.error('Please check your .env file and ensure all required variables are set.');
+    
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Missing required M-Pesa configuration: ${missingConfig.join(', ')}`);
+    }
   }
 };
 
 // Only validate in production to allow development without all configs
 if (process.env.NODE_ENV === 'production') {
+  validateConfig();
+} else {
+  // In development, just log warnings
   validateConfig();
 }
 
