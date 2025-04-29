@@ -136,3 +136,10 @@
 {"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:36:48"}
 {"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-02.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-28 22:47:57"}
 {"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-28 22:47:57"}
+{"level":"error","message":"Error connecting to MongoDB: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/","service":"mpesa-api","timestamp":"2025-04-29 19:40:41"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-00.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-29 19:48:41"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-29 19:48:41"}
+{"accountReference":"TEST123","amount":1,"level":"info","message":"STK Push request received","phoneNumber":"0708374149","service":"mpesa-api","timestamp":"2025-04-29 19:48:55"}
+{"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-29 19:48:55"}
+{"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-29 19:48:57"}
+{"amount":1,"level":"info","message":"Initiating STK Push:","phoneNumber":"254708374149","reference":"TEST123","service":"mpesa-api","timestamp":"2025-04-29 19:48:57"}
