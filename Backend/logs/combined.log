@@ -143,3 +143,20 @@
 {"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-29 19:48:55"}
 {"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-29 19:48:57"}
 {"amount":1,"level":"info","message":"Initiating STK Push:","phoneNumber":"254708374149","reference":"TEST123","service":"mpesa-api","timestamp":"2025-04-29 19:48:57"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-01.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-29 20:04:08"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-29 20:04:08"}
+{"accountReference":"TEST123","amount":1,"level":"info","message":"STK Push request received","phoneNumber":"0112398869","service":"mpesa-api","timestamp":"2025-04-29 20:04:43"}
+{"level":"info","message":"Getting M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-29 20:04:43"}
+{"level":"info","message":"Successfully obtained M-Pesa access token","service":"mpesa-api","timestamp":"2025-04-29 20:04:55"}
+{"amount":1,"level":"info","message":"Initiating STK Push:","phoneNumber":"254112398869","reference":"TEST123","service":"mpesa-api","timestamp":"2025-04-29 20:04:55"}
+{"data":"","level":"error","message":"Request failed with status code 404","service":"mpesa-api","status":404,"timestamp":"2025-04-29 20:04:56","url":"/payments/stkpush/v1/processrequest"}
+{"level":"error","message":"Request failed with status code 404","response":"","service":"mpesa-api","status":404,"timestamp":"2025-04-29 20:04:56"}
+{"error":{"statusCode":500},"level":"error","message":"Failed to initiate STK Push: Request failed with status code 404","method":"POST","path":"/api/v1/payments/stk-push","service":"mpesa-api","stack":"Error: Failed to initiate STK Push: Request failed with status code 404\n    at MpesaService.initiateSTKPush (file:///home/gray/projects/mpesaAPI/Backend/services/mpesa.service.js:161:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///home/gray/projects/mpesaAPI/Backend/controllers/mpesa.controller.js:24:20","timestamp":"2025-04-29 20:04:56"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-02.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-29 20:05:31"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-29 20:05:31"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-01.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-29 20:05:58"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-29 20:05:58"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-00.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-29 20:06:28"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-29 20:06:28"}
+{"level":"info","message":"MongoDB Connected: ac-8idzin6-shard-00-01.vk6hawu.mongodb.net","service":"mpesa-api","timestamp":"2025-04-29 20:06:38"}
+{"level":"info","message":"Server running in development mode on port 5000","service":"mpesa-api","timestamp":"2025-04-29 20:06:38"}

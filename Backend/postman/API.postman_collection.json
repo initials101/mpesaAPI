@@ -35,9 +35,9 @@
           "raw": "{\\n    \"phoneNumber\": \"0112395869\",\\n    \"amount\": 1,\\n    \"accountReference\": \"TEST123\",\\n    \"transactionDesc\": \"Test Payment\"\\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/payments/stk-push",
+          "raw": "{{baseUrl}}/api/mpesa/stk-push",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "stk-push"]
+          "path": ["api", "mpesa", "stk-push"]
         },
         "description": "Initiate an STK Push request to a customer's phone"
       },
@@ -58,9 +58,9 @@
           "raw": "{\\n    \"phoneNumber\": \"0112395869\",\\n    \"amount\": 100,\\n    \"commandID\": \"BusinessPayment\",\\n    \"remarks\": \"Salary payment\",\\n    \"occassion\": \"Monthly salary\"\\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/payments/b2c",
+          "raw": "{{baseUrl}}/api/mpesa/b2c",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "b2c"]
+          "path": ["api", "mpesa", "b2c"]
         },
         "description": "Send money from your business to a customer"
       },
@@ -81,9 +81,9 @@
           "raw": "{\\n    \"transactionID\": \"OEI2AK4Q16\",\\n    \"identifierType\": 1\\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/payments/transaction-status",
+          "raw": "{{baseUrl}}/api/mpesa/transaction-status",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "transaction-status"]
+          "path": ["api", "mpesa", "transaction-status"]
         },
         "description": "Check the status of a transaction"
       },
@@ -95,9 +95,9 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/payments/transactions",
+          "raw": "{{baseUrl}}/api/mpesa/transactions",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "transactions"],
+          "path": ["api", "mpesa", "transactions"],
           "query": [
             {
               "key": "status",
@@ -131,9 +131,9 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/payments/transactions/:id",
+          "raw": "{{baseUrl}}/api/mpesa/transactions/:id",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "transactions", ":id"],
+          "path": ["api", "mpesa", "transactions", ":id"],
           "variable": [
             {
               "key": "id",
@@ -151,9 +151,9 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/payments/transactions/reference/:reference",
+          "raw": "{{baseUrl}}/api/mpesa/transactions/reference/:reference",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "transactions", "reference", ":reference"],
+          "path": ["api", "mpesa", "transactions", "reference", ":reference"],
           "variable": [
             {
               "key": "reference",
