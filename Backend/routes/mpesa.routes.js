@@ -1,11 +1,12 @@
 import express from 'express';
 import { mpesaController } from '../controllers/mpesa.controller.js';
+import { transactionsController } from '../controllers/transactions.controller.js';
 import { validateRequest, validationSchemas } from '../middleware/validator.js';
 
 const router = express.Router();
 
 /**
- * @route   POST /api/v1/mpesa/stk-push
+ * @route   POST /api/mpesa/stk-push
  * @desc    Initiate STK Push payment
  * @access  Public
  */
@@ -16,7 +17,18 @@ router.post(
 );
 
 /**
- * @route   POST /api/v1/mpesa/b2c
+ * @route   POST /api/mpesa/stk-status
+ * @desc    Query STK Push status
+ * @access  Public
+ */
+router.post(
+  '/stk-status',
+  validateRequest(validationSchemas.stkStatus),
+  mpesaController.queryStkStatus
+);
+
+/**
+ * @route   POST /api/mpesa/b2c
  * @desc    Send B2C payment
  * @access  Public
  */
@@ -27,29 +39,7 @@ router.post(
 );
 
 /**
- * @route   POST /api/v1/mpesa/c2b/register
- * @desc    Register C2B URLs
- * @access  Public
- */
-router.post(
-  '/c2b/register',
-  validateRequest(validationSchemas.c2bRegister),
-  mpesaController.registerC2BUrls
-);
-
-/**
- * @route   POST /api/v1/mpesa/c2b/simulate
- * @desc    Simulate C2B transaction (sandbox only)
- * @access  Public
- */
-router.post(
-  '/c2b/simulate',
-  validateRequest(validationSchemas.c2bSimulate),
-  mpesaController.simulateC2BTransaction
-);
-
-/**
- * @route   POST /api/v1/mpesa/transaction-status
+ * @route   POST /api/mpesa/transaction-status
  * @desc    Query transaction status
  * @access  Public
  */
@@ -60,7 +50,7 @@ router.post(
 );
 
 /**
- * @route   GET /api/v1/mpesa/transactions
+ * @route   GET /api/mpesa/transactions
  * @desc    Get all transactions
  * @access  Public
  */
@@ -70,7 +60,7 @@ router.get(
 );
 
 /**
- * @route   GET /api/v1/mpesa/transactions/:id
+ * @route   GET /api/mpesa/transactions/:id
  * @desc    Get transaction by ID
  * @access  Public
  */
@@ -80,7 +70,7 @@ router.get(
 );
 
 /**
- * @route   GET /api/v1/mpesa/transactions/reference/:reference
+ * @route   GET /api/mpesa/transactions/reference/:reference
  * @desc    Get transactions by reference
  * @access  Public
  */
@@ -90,7 +80,37 @@ router.get(
 );
 
 /**
- * @route   POST /api/v1/mpesa/callbacks/stk
+ * @route   POST /api/mpesa/transactions/check-pending
+ * @desc    Check and process pending transactions
+ * @access  Public
+ */
+router.post(
+  '/transactions/check-pending',
+  transactionsController.checkPendingTransactions
+);
+
+/**
+ * @route   POST /api/mpesa/transactions/:id/retry
+ * @desc    Retry a failed transaction
+ * @access  Public
+ */
+router.post(
+  '/transactions/:id/retry',
+  transactionsController.retryTransaction
+);
+
+/**
+ * @route   GET /api/mpesa/transactions/stats
+ * @desc    Get transaction statistics
+ * @access  Public
+ */
+router.get(
+  '/transactions/stats',
+  transactionsController.getTransactionStats
+);
+
+/**
+ * @route   POST /api/mpesa/callbacks/stk
  * @desc    STK Push callback URL
  * @access  Public
  */
@@ -100,7 +120,7 @@ router.post(
 );
 
 /**
- * @route   POST /api/v1/mpesa/callbacks/b2c/result
+ * @route   POST /api/mpesa/callbacks/b2c/result
  * @desc    B2C result callback URL
  * @access  Public
  */
@@ -110,33 +130,13 @@ router.post(
 );
 
 /**
- * @route   POST /api/v1/mpesa/callbacks/b2c/timeout
+ * @route   POST /api/mpesa/callbacks/b2c/timeout
  * @desc    B2C timeout callback URL
  * @access  Public
  */
 router.post(
   '/callbacks/b2c/timeout',
   mpesaController.handleB2CTimeoutCallback
-);
-
-/**
- * @route   POST /api/v1/mpesa/callbacks/c2b/validation
- * @desc    C2B validation callback URL
- * @access  Public
- */
-router.post(
-  '/callbacks/c2b/validation',
-  mpesaController.handleC2BValidation
-);
-
-/**
- * @route   POST /api/v1/mpesa/callbacks/c2b/confirmation
- * @desc    C2B confirmation callback URL
- * @access  Public
- */
-router.post(
-  '/callbacks/c2b/confirmation',
-  mpesaController.handleC2BConfirmation
 );
 
 export default router;
