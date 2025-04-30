@@ -5,7 +5,14 @@ import logger from '../utils/logger.js';
  */
 export class ApiError extends Error {
   constructor(statusCode, message, isOperational = true, stack = '') {
-    super(message);
+    // Ensure message is a string
+    const cleanMessage = typeof message === 'string' 
+      ? message 
+      : (message && message.toString) 
+        ? message.toString() 
+        : 'Unknown error';
+    
+    super(cleanMessage);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
     
@@ -22,7 +29,13 @@ export class ApiError extends Error {
  */
 export const errorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
-  err.message = err.message || 'Internal Server Error';
+  
+  // Ensure message is a string
+  err.message = typeof err.message === 'string' 
+    ? err.message 
+    : (err.message && err.message.toString) 
+      ? err.message.toString() 
+      : 'Internal Server Error';
   
   // Log the error
   if (err.statusCode >= 500) {

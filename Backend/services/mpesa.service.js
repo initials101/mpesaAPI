@@ -160,8 +160,10 @@ class MpesaService {
         // Set timeout for this transaction
         this.setTransactionTimeout(response.data.CheckoutRequestID);
         
-        // Start polling for status immediately (every 5 seconds)
-        this.startStatusPolling(response.data.CheckoutRequestID);
+        // Start polling for status after a short delay (5 seconds)
+        setTimeout(() => {
+          this.startStatusPolling(response.data.CheckoutRequestID);
+        }, 5000);
       }
       
       return response.data;
@@ -206,13 +208,61 @@ class MpesaService {
         logger.info(`Polling STK status for ${checkoutRequestID} (attempt ${attempts}/${maxAttempts})`);
         
         // Query status from M-Pesa
-        await this.queryStkStatus(checkoutRequestID);
+        try {
+          await this.queryStkStatus(checkoutRequestID);
+        } catch (error) {
+          // Check if this is a "transaction is being processed" error
+          if (error.response && 
+              error.response.data && 
+              error.response.data.errorMessage && 
+              error.response.data.errorMessage.includes("transaction is being processed")) {
+            
+            // This is normal - the transaction is still in progress
+            logger.info(`Transaction ${checkoutRequestID} is still being processed`);
+            
+            // Continue polling - don't count this as an error
+            if (attempts >= maxAttempts) {
+              clearInterval(pollInterval);
+              
+              // Check if transaction is still pending after all attempts
+              const updatedTransactions = await fine.table("transactions")
+                .select()
+                .eq("checkoutRequestID", checkoutRequestID);
+              
+              if (updatedTransactions.length > 0 && updatedTransactions[0].status === 'pending') {
+                // Mark as cancelled due to timeout if still pending
+                await fine.table("transactions")
+                  .update({
+                    status: 'cancelled',
+                    failureReason: 'Timeout - No Response',
+                    timeoutHandled: true,
+                    updatedAt: Math.floor(Date.now() / 1000)
+                  })
+                  .eq("id", updatedTransactions[0].id);
+                
+                logger.info(`Transaction ${checkoutRequestID} marked as cancelled after ${maxAttempts} polling attempts`);
+              }
+            }
+          } else {
+            // This is an actual error, log it but continue polling
+            logger.warn(`Error querying STK status for ${checkoutRequestID}: ${error.message}`);
+          }
+        }
+      } catch (error) {
+        logger.warn(`Error in polling cycle for ${checkoutRequestID}: ${error.message}`);
         
-        // If we've reached max attempts, stop polling
+        // If we encounter an error and reached max attempts, stop polling
         if (attempts >= maxAttempts) {
           clearInterval(pollInterval);
-          
-          // Check if transaction is still pending after all attempts
+        }
+      }
+      
+      // If we've reached max attempts, stop polling
+      if (attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        
+        // Check if transaction is still pending after all attempts
+        try {
           const updatedTransactions = await fine.table("transactions")
             .select()
             .eq("checkoutRequestID", checkoutRequestID);
@@ -230,13 +280,8 @@ class MpesaService {
             
             logger.info(`Transaction ${checkoutRequestID} marked as cancelled after ${maxAttempts} polling attempts`);
           }
-        }
-      } catch (error) {
-        logger.error(`Error polling STK status for ${checkoutRequestID}:`, error.message);
-        
-        // If we encounter an error and reached max attempts, stop polling
-        if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
+        } catch (error) {
+          logger.error(`Error updating transaction ${checkoutRequestID} after polling timeout: ${error.message}`);
         }
       }
     }, intervalSeconds * 1000);
@@ -302,7 +347,20 @@ class MpesaService {
                 return;
               }
             } catch (error) {
-              logger.error(`Error querying STK status for ${id}:`, error.message);
+              // Check if this is a "transaction is being processed" error
+              if (error.response && 
+                  error.response.data && 
+                  error.response.data.errorMessage && 
+                  error.response.data.errorMessage.includes("transaction is being processed")) {
+                
+                // This is normal - the transaction is still in progress
+                logger.info(`Transaction ${id} is still being processed at timeout check`);
+                
+                // Don't mark as cancelled yet, let the polling handle it
+                return;
+              }
+              
+              logger.warn(`Error querying STK status for ${id} during timeout check: ${error.message}`);
             }
             
             logger.info(`Marking transaction ${id} as cancelled due to timeout`);
@@ -330,7 +388,7 @@ class MpesaService {
             logger.info(`Transaction ${id} timeout handled, status was: ${transaction.status}`);
           }
         } catch (error) {
-          logger.error(`Error handling transaction timeout for ${id}:`, error.message);
+          logger.error(`Error handling transaction timeout for ${id}: ${error.message}`);
         }
       },
       timeoutSeconds * 1000
@@ -513,12 +571,11 @@ class MpesaService {
           
           // Only update if status is still pending
           if (transaction.status === 'pending') {
-            let status = 'failed';
-            let failureReason = resultDesc;
+            let status = 'pending'; // Default to pending unless we get a definitive result
+            let failureReason = null;
             
             if (resultCode === 0) {
               status = 'success';
-              failureReason = null;
             } else if (resultCode === 1032) {
               status = 'cancelled';
               failureReason = 'Transaction cancelled by user';
@@ -531,28 +588,58 @@ class MpesaService {
             } else if (resultCode === 1025) {
               status = 'failed';
               failureReason = 'Insufficient funds';
+            } else {
+              // For other codes, we'll keep it as pending unless it's a definitive failure
+              if (resultCode !== 1 && resultCode !== 2) { // 1 and 2 are often "in progress" codes
+                status = 'failed';
+                failureReason = resultDesc;
+              }
             }
             
-            // Update transaction
-            await fine.table("transactions")
-              .update({
-                status,
-                resultCode: resultCode.toString(),
-                resultDesc,
-                failureReason,
-                timeoutHandled: true,
-                updatedAt: Math.floor(Date.now() / 1000)
-              })
-              .eq("id", transaction.id);
-            
-            logger.info(`Updated transaction ${checkoutRequestID} status from query: ${status}`);
+            // Only update if we have a definitive status change
+            if (status !== 'pending') {
+              // Update transaction
+              await fine.table("transactions")
+                .update({
+                  status,
+                  resultCode: resultCode.toString(),
+                  resultDesc,
+                  failureReason,
+                  timeoutHandled: true,
+                  updatedAt: Math.floor(Date.now() / 1000)
+                })
+                .eq("id", transaction.id);
+              
+              logger.info(`Updated transaction ${checkoutRequestID} status from query: ${status}`);
+            } else {
+              logger.info(`Transaction ${checkoutRequestID} is still pending after status query`);
+            }
           }
         }
       }
       
       return response.data;
     } catch (error) {
-      logger.error(`Error querying STK status for ${checkoutRequestID}:`, error.message);
+      // Special handling for "transaction is being processed" error
+      if (error.response && 
+          error.response.data && 
+          error.response.data.errorMessage && 
+          error.response.data.errorMessage.includes("transaction is being processed")) {
+        
+        // This is not a real error, it's just M-Pesa telling us the transaction is still in progress
+        logger.info(`Transaction ${checkoutRequestID} is still being processed`);
+        
+        // Return a standardized response for in-progress transactions
+        return {
+          ResultCode: -1, // Custom code for "in progress"
+          ResultDesc: "The transaction is being processed",
+          CheckoutRequestID: checkoutRequestID,
+          inProgress: true
+        };
+      }
+      
+      // For other errors, log and rethrow
+      logger.warn(`Error querying STK status for ${checkoutRequestID}: ${error.message}`);
       throw error;
     }
   }
@@ -594,42 +681,104 @@ class MpesaService {
         transactionID
       });
       
-      const response = await this.api.post(
-        '/mpesa/b2c/v1/paymentrequest',
-        requestBody,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
+      try {
+        const response = await this.api.post(
+          '/mpesa/b2c/v1/paymentrequest',
+          requestBody,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
           }
-        }
-      );
-      
-      if (response.data.ResponseCode === '0') {
-        // Save transaction to database
-        const transaction = {
-          transactionType: 'B2C',
-          amount,
-          phoneNumber: formattedPhone,
-          referenceId: transactionID,
-          conversationId: response.data.ConversationID,
-          originatorConversationId: response.data.OriginatorConversationID,
-          status: 'pending',
-          metadata: JSON.stringify({
-            commandID,
-            remarks,
-            occassion,
-            initiatedAt: Math.floor(Date.now() / 1000)
-          })
-        };
+        );
         
-        // Save to database
-        await fine.table("transactions").insert(transaction);
+        if (response.data.ResponseCode === '0') {
+          // Save transaction to database
+          const transaction = {
+            transactionType: 'B2C',
+            amount,
+            phoneNumber: formattedPhone,
+            referenceId: transactionID,
+            conversationId: response.data.ConversationID,
+            originatorConversationId: response.data.OriginatorConversationID,
+            status: 'pending',
+            metadata: JSON.stringify({
+              commandID,
+              remarks,
+              occassion,
+              initiatedAt: Math.floor(Date.now() / 1000)
+            })
+          };
+          
+          // Save to database
+          await fine.table("transactions").insert(transaction);
+        }
+        
+        return response.data;
+      } catch (error) {
+        // Handle specific error cases
+        if (error.response && error.response.data) {
+          const errorData = error.response.data;
+          
+          // Log the detailed error information
+          logger.error('B2C payment API error details:', {
+            status: error.response.status,
+            errorCode: errorData.errorCode,
+            errorMessage: errorData.errorMessage || 'Unknown error',
+            requestId: errorData.requestId
+          });
+          
+          // Create a more user-friendly error message
+          let errorMessage = 'B2C payment failed';
+          
+          if (errorData.errorMessage) {
+            errorMessage += `: ${errorData.errorMessage}`;
+          } else if (errorData.errorCode) {
+            errorMessage += ` with error code ${errorData.errorCode}`;
+          }
+          
+          // Save failed transaction to database for tracking
+          const transaction = {
+            transactionType: 'B2C',
+            amount,
+            phoneNumber: formattedPhone,
+            referenceId: transactionID,
+            status: 'failed',
+            failureReason: errorMessage,
+            metadata: JSON.stringify({
+              commandID,
+              remarks,
+              occassion,
+              initiatedAt: Math.floor(Date.now() / 1000),
+              errorDetails: {
+                errorCode: errorData.errorCode,
+                errorMessage: errorData.errorMessage,
+                requestId: errorData.requestId
+              }
+            })
+          };
+          
+          try {
+            // Save to database
+            await fine.table("transactions").insert(transaction);
+          } catch (dbError) {
+            logger.error('Failed to save failed B2C transaction to database:', dbError.message);
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        // For other errors, rethrow with a clearer message
+        throw new Error(`Failed to send B2C payment: ${error.message}`);
       }
-      
-      return response.data;
     } catch (error) {
-      logger.error('B2C payment failed:', error.message);
-      throw new Error(`Failed to send B2C payment: ${error.message}`);
+      // Make sure we have a clean string error message
+      const errorMessage = typeof error.message === 'string' 
+        ? error.message 
+        : 'Unknown error occurred during B2C payment';
+      
+      logger.error('B2C payment failed:', errorMessage);
+      throw new Error(errorMessage);
     }
   }
   

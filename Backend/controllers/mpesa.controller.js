@@ -55,27 +55,48 @@ export const mpesaController = {
       commandID
     });
     
-    const result = await mpesaService.sendB2CPayment({
-      phoneNumber: formatPhoneNumber(phoneNumber),
-      amount,
-      commandID,
-      remarks,
-      occassion
-    });
-    
-    if (result.ResponseCode === '0') {
-      return res.status(200).json({
-        status: 'success',
-        message: 'B2C payment initiated successfully',
-        data: {
-          conversationID: result.ConversationID,
-          originatorConversationID: result.OriginatorConversationID,
-          responseCode: result.ResponseCode,
-          responseDescription: result.ResponseDescription
-        }
+    try {
+      const result = await mpesaService.sendB2CPayment({
+        phoneNumber: formatPhoneNumber(phoneNumber),
+        amount,
+        commandID,
+        remarks,
+        occassion
       });
-    } else {
-      throw new ApiError(400, `B2C payment failed: ${result.ResponseDescription}`);
+      
+      if (result.ResponseCode === '0') {
+        return res.status(200).json({
+          status: 'success',
+          message: 'B2C payment initiated successfully',
+          data: {
+            conversationID: result.ConversationID,
+            originatorConversationID: result.OriginatorConversationID,
+            responseCode: result.ResponseCode,
+            responseDescription: result.ResponseDescription
+          }
+        });
+      } else {
+        throw new ApiError(400, `B2C payment failed: ${result.ResponseDescription}`);
+      }
+    } catch (error) {
+      // Create a clean error message
+      const errorMessage = typeof error.message === 'string' 
+        ? error.message 
+        : 'Unknown error occurred during B2C payment';
+      
+      // Log the error with context
+      logger.error('B2C payment controller error:', {
+        error: errorMessage,
+        phoneNumber,
+        amount,
+        commandID
+      });
+      
+      // Return a clean error response
+      throw new ApiError(
+        error.statusCode || 500,
+        errorMessage
+      );
     }
   }),
   
@@ -123,33 +144,76 @@ export const mpesaController = {
     
     logger.info('STK status query received', { checkoutRequestID });
     
-    const result = await mpesaService.queryStkStatus(checkoutRequestID);
-    
-    // Get transaction from database
-    const transactions = await fine.table("transactions")
-      .select()
-      .eq("checkoutRequestID", checkoutRequestID);
-    
-    const transaction = transactions.length > 0 ? transactions[0] : null;
-    
-    return res.status(200).json({
-      status: 'success',
-      message: 'STK status query completed',
-      data: {
-        responseCode: result.ResultCode,
-        responseDescription: result.ResultDesc,
-        transaction: transaction ? {
-          id: transaction.id,
-          status: transaction.status,
-          amount: transaction.amount,
-          phoneNumber: transaction.phoneNumber,
-          referenceId: transaction.referenceId,
-          failureReason: transaction.failureReason,
-          createdAt: transaction.createdAt,
-          updatedAt: transaction.updatedAt
-        } : null
+    try {
+      const result = await mpesaService.queryStkStatus(checkoutRequestID);
+      
+      // Get transaction from database
+      const transactions = await fine.table("transactions")
+        .select()
+        .eq("checkoutRequestID", checkoutRequestID);
+      
+      const transaction = transactions.length > 0 ? transactions[0] : null;
+      
+      return res.status(200).json({
+        status: 'success',
+        message: 'STK status query completed',
+        data: {
+          responseCode: result.ResultCode,
+          responseDescription: result.ResultDesc,
+          inProgress: result.inProgress || false,
+          transaction: transaction ? {
+            id: transaction.id,
+            status: transaction.status,
+            amount: transaction.amount,
+            phoneNumber: transaction.phoneNumber,
+            referenceId: transaction.referenceId,
+            failureReason: transaction.failureReason,
+            createdAt: transaction.createdAt,
+            updatedAt: transaction.updatedAt
+          } : null
+        }
+      });
+    } catch (error) {
+      // Special handling for "transaction is being processed"
+      if (error.response && 
+          error.response.data && 
+          error.response.data.errorMessage && 
+          error.response.data.errorMessage.includes("transaction is being processed")) {
+        
+        // Get transaction from database
+        const transactions = await fine.table("transactions")
+          .select()
+          .eq("checkoutRequestID", checkoutRequestID);
+        
+        const transaction = transactions.length > 0 ? transactions[0] : null;
+        
+        // Return a 200 response with in-progress status
+        return res.status(200).json({
+          status: 'success',
+          message: 'Transaction is still being processed',
+          data: {
+            responseCode: -1, // Custom code for in-progress
+            responseDescription: "The transaction is being processed",
+            inProgress: true,
+            transaction: transaction ? {
+              id: transaction.id,
+              status: transaction.status,
+              amount: transaction.amount,
+              phoneNumber: transaction.phoneNumber,
+              referenceId: transaction.referenceId,
+              createdAt: transaction.createdAt,
+              updatedAt: transaction.updatedAt
+            } : null
+          }
+        });
       }
-    });
+      
+      // For other errors, throw normally
+      throw new ApiError(
+        error.statusCode || 500,
+        `STK status query failed: ${error.message}`
+      );
+    }
   }),
   
   /**
