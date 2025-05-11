@@ -11,7 +11,7 @@ formatPhoneNumber,
 generateTransactionReference 
 } from '../utils/helpers.js';
 import { setTransactionTimeout, clearTransactionTimeout } from '../utils/timer.js';
-import { fine } from '../lib/fine.js'; // Changed from @/lib/fine.js
+import { fine } from '../lib/fine.js'; 
 
 /**
 * M-Pesa API Service

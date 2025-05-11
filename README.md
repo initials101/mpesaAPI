@@ -6,7 +6,7 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 
 - **M-Pesa API Authentication**: Secure OAuth token generation with automatic refresh
 - **STK Push (Lipa Na M-Pesa Online)**: Initiate customer payments directly from your application
-- **B2C Payments**: Send money from your business to customers, suppliers, or employees
+- **B2C payments**: Send money from your business to customers, suppliers, or employees
 - **Transaction Status Query**: Check the status of transactions to verify completion
 - **Secure Webhook Handling**: Process M-Pesa callbacks securely with signature verification
 - **Comprehensive Error Handling**: Detailed error responses and logging
@@ -26,7 +26,7 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 
 ### Prerequisites
 
-- Node.js 14.x or higher
+- Node.js 20.x or higher
 - npm or yarn
 - M-Pesa API credentials (Consumer Key, Consumer Secret, etc.)
 
@@ -34,7 +34,7 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/mpesaAPI.git
+   git clone https://github.com/initials/mpesaAPI.git
    cd mpesaAPI
    ```
 
@@ -52,7 +52,7 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 
 5. Start the server:
    ```bash
-   npm start
+   npm run dev
    ```
 
 ## API Documentation
@@ -68,7 +68,7 @@ The API uses M-Pesa OAuth for authentication. This is handled internally by the 
 Initiates an STK push request to a customer's phone.
 
 ```
-POST /api/payments/stk-push
+POST /api/mpesa/stk-push
 ```
 
 **Request Body:**
@@ -100,7 +100,7 @@ POST /api/payments/stk-push
 Sends money from your business to a customer.
 
 ```
-POST /api/payments/b2c
+POST /api/mpesa/b2c
 ```
 
 **Request Body:**
@@ -133,7 +133,7 @@ POST /api/payments/b2c
 Checks the status of a transaction.
 
 ```
-POST /api/payments/transaction-status
+POST /api/mpesa/transaction-status
 ```
 
 **Request Body:**
@@ -165,19 +165,19 @@ These endpoints receive callbacks from M-Pesa after a transaction is processed.
 #### STK Push Callback
 
 ```
-POST /api/payments/callbacks/stk
+POST /api/mpesa/callbacks/stk
 ```
 
 #### B2C Result Callback
 
 ```
-POST /api/payments/callbacks/b2c/result
+POST /api/mpesa/callbacks/b2c/result
 ```
 
 #### B2C Timeout Callback
 
 ```
-POST /api/payments/callbacks/b2c/timeout
+POST /api/mpesa/callbacks/b2c/timeout
 ```
 
 ## Environment Variables
@@ -186,7 +186,7 @@ The following environment variables are required:
 
 ```
 # Server Configuration
-PORT=3000
+PORT=5000
 NODE_ENV=development
 LOG_LEVEL=info
 
@@ -201,9 +201,9 @@ MPESA_BASE_URL=https://sandbox.safaricom.co.ke
 
 # Callback URLs
 CALLBACK_BASE_URL=https://your-domain.com
-STK_CALLBACK_URL=/api/payments/callbacks/stk
-B2C_RESULT_URL=/api/payments/callbacks/b2c/result
-B2C_TIMEOUT_URL=/api/payments/callbacks/b2c/timeout
+STK_CALLBACK_URL=/api/mpesa/callbacks/stk
+B2C_RESULT_URL=/api/mpesa/callbacks/b2c/result
+B2C_TIMEOUT_URL=/api/mpesa/callbacks/b2c/timeout
 
 # Security Configuration
 JWT_SECRET=your_jwt_secret_key
