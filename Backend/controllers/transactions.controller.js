@@ -1,7 +1,7 @@
 import logger from '../utils/logger.js';
 import { ApiError, catchAsync } from '../middleware/errorHandler.js';
 import mpesaService from '../services/mpesa.service.js';
-import Transaction from '../models/transaction.model.js'; // Import MongoDB model
+import Transaction from '../models/transaction.model.js';
 
 /**
  * Controller for transaction-related operations
@@ -30,12 +30,40 @@ export const transactionsController = {
         // For STK Push transactions, try to query status first
         if (transaction.transactionType === 'STK_PUSH' && transaction.checkoutRequestID) {
           try {
-            await mpesaService.queryStkStatus(transaction.checkoutRequestID);
+            // Add debug logging before querying status
+            logger.debug(`[DEBUG] About to query status for transaction ${transaction.checkoutRequestID}`);
+            
+            const statusResult = await mpesaService.queryStkStatus(transaction.checkoutRequestID);
+            
+            // Add debug logging after querying status
+            logger.debug(`[DEBUG] Status query result for ${transaction.checkoutRequestID}:`, {
+              resultCode: statusResult.ResultCode,
+              resultDesc: statusResult.ResultDesc
+            });
             
             // Re-fetch transaction to see if status was updated by the query
             const updatedTransaction = await Transaction.findById(transaction._id);
             
+            // Add debug logging for the updated transaction
+            logger.debug(`[DEBUG] Updated transaction ${transaction.checkoutRequestID} status:`, {
+              oldStatus: transaction.status,
+              newStatus: updatedTransaction?.status,
+              resultCode: updatedTransaction?.resultCode
+            });
+            
             if (updatedTransaction && updatedTransaction.status !== 'pending') {
+              // Check if this is a transaction that was incorrectly marked as failed
+              if (updatedTransaction.status === 'failed' && updatedTransaction.resultCode === '0') {
+                logger.warn(`[DEBUG] Transaction ${transaction.checkoutRequestID} was incorrectly marked as failed despite result code 0`);
+                
+                // Fix the transaction
+                updatedTransaction.status = 'success';
+                updatedTransaction.failureReason = null;
+                await updatedTransaction.save();
+                
+                logger.info(`[DEBUG] Fixed transaction ${transaction.checkoutRequestID} - changed status from failed to success`);
+              }
+              
               processedTransactions.push({
                 id: transaction._id,
                 status: updatedTransaction.status,
@@ -200,6 +228,98 @@ export const transactionsController = {
         byStatus,
         byType,
         totalAmount: totalAmount.toFixed(2)
+      }
+    });
+  }),
+  
+  /**
+   * Fix incorrectly marked transactions
+   * This is a new method to fix transactions that were incorrectly marked as failed
+   * despite having a success result code (0)
+   */
+  fixIncorrectTransactions: catchAsync(async (req, res) => {
+    try {
+      // Find all transactions marked as failed but with success result code
+      const incorrectTransactions = await Transaction.find({
+        status: 'failed',
+        resultCode: '0'
+      });
+      
+      logger.info(`Found ${incorrectTransactions.length} incorrectly marked transactions`);
+      
+      const fixed = [];
+      
+      for (const transaction of incorrectTransactions) {
+        // Store original values for logging
+        const originalStatus = transaction.status;
+        const originalFailureReason = transaction.failureReason;
+        
+        // Update to success
+        transaction.status = 'success';
+        transaction.failureReason = null;
+        transaction.updatedAt = Math.floor(Date.now() / 1000);
+        
+        await transaction.save();
+        
+        fixed.push({
+          id: transaction._id,
+          checkoutRequestID: transaction.checkoutRequestID,
+          originalStatus,
+          originalFailureReason,
+          newStatus: 'success'
+        });
+        
+        logger.info(`Fixed transaction ${transaction.checkoutRequestID} - changed status from failed to success`);
+      }
+      
+      return res.status(200).json({
+        status: 'success',
+        message: `Fixed ${fixed.length} incorrectly marked transactions`,
+        data: fixed
+      });
+    } catch (error) {
+      logger.error('Error fixing transactions:', error);
+      throw new ApiError(500, `Error fixing transactions: ${error.message}`);
+    }
+  }),
+  
+  /**
+   * Debug transaction status
+   * This is a new method to help debug transaction status issues
+   */
+  debugTransactionStatus: catchAsync(async (req, res) => {
+    const { checkoutRequestID } = req.params;
+    
+    // Find the transaction
+    const transaction = await Transaction.findOne({ checkoutRequestID });
+    
+    if (!transaction) {
+      throw new ApiError(404, `No transaction found with checkoutRequestID: ${checkoutRequestID}`);
+    }
+    
+    // Get the current status
+    const currentStatus = {
+      id: transaction._id,
+      checkoutRequestID: transaction.checkoutRequestID,
+      status: transaction.status,
+      resultCode: transaction.resultCode,
+      resultDesc: transaction.resultDesc,
+      failureReason: transaction.failureReason,
+      createdAt: new Date(transaction.createdAt * 1000).toISOString(),
+      updatedAt: new Date(transaction.updatedAt * 1000).toISOString()
+    };
+    
+    // Check if this transaction was incorrectly marked
+    const isIncorrectlyMarked = transaction.status === 'failed' && transaction.resultCode === '0';
+    
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        transaction: currentStatus,
+        isIncorrectlyMarked,
+        recommendation: isIncorrectlyMarked ? 
+          'This transaction was incorrectly marked as failed despite having a success result code (0). Use the fix endpoint to correct it.' : 
+          'This transaction appears to be correctly marked.'
       }
     });
   })
