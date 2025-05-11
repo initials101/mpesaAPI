@@ -14,57 +14,52 @@ const transactionSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  accountReference: {
+  referenceId: {
     type: String,
     required: true
-  },
-  description: {
-    type: String
-  },
-  merchantRequestID: {
-    type: String
-  },
-  checkoutRequestID: {
-    type: String
-  },
-  conversationID: {
-    type: String
-  },
-  originatorConversationID: {
-    type: String
-  },
-  resultCode: {
-    type: String
-  },
-  resultDesc: {
-    type: String
-  },
-  transactionID: {
-    type: String
-  },
-  mpesaReceiptNumber: {
-    type: String
   },
   status: {
     type: String,
     required: true,
-    enum: ['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED', 'TIMEOUT'],
-    default: 'PENDING'
+    enum: ['pending', 'success', 'failed', 'cancelled'],
+    default: 'pending'
   },
-  metadata: {
-    type: mongoose.Schema.Types.Mixed
+  checkoutRequestID: String,
+  merchantRequestID: String,
+  conversationId: String,
+  originatorConversationId: String,
+  resultCode: String,
+  resultDesc: String,
+  mpesaReceiptNumber: String,
+  transactionId: String,
+  failureReason: String,
+  timeoutAt: Number,
+  timeoutHandled: {
+    type: Boolean,
+    default: false
+  },
+  metadata: mongoose.Schema.Types.Mixed,
+  createdAt: {
+    type: Number,
+    default: () => Math.floor(Date.now() / 1000)
+  },
+  updatedAt: {
+    type: Number,
+    default: () => Math.floor(Date.now() / 1000)
   }
 }, {
-  timestamps: true
+  timestamps: { 
+    currentTime: () => Math.floor(Date.now() / 1000),
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  }
 });
 
-// Indexes for faster queries
-transactionSchema.index({ accountReference: 1 });
+// Add indexes for faster queries
+transactionSchema.index({ checkoutRequestID: 1 });
 transactionSchema.index({ phoneNumber: 1 });
 transactionSchema.index({ status: 1 });
-transactionSchema.index({ transactionID: 1 }, { sparse: true });
-transactionSchema.index({ mpesaReceiptNumber: 1 }, { sparse: true });
-transactionSchema.index({ checkoutRequestID: 1 }, { sparse: true });
+transactionSchema.index({ createdAt: -1 });
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
