@@ -1,7 +1,7 @@
-import logger from "../utils/logger.js"
-import { ApiError, catchAsync } from "../middleware/errorHandler.js"
+import logger from "../utils/mpesa.logger.js"
+import { ApiError, catchAsync } from "../middleware/mpesa.errorHandler.js"
 import mpesaService from "../services/mpesa.service.js"
-import Transaction from "../models/transaction.model.js"
+import Transaction from "../models/mpesa.transaction.model.js"
 
 /**
  * Controller for transaction-related operations

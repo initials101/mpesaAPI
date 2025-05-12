@@ -1,11 +1,10 @@
 import axios from "axios"
 import config from "../config/index.js"
-import logger from "../utils/logger.js"
-import { generateBasicAuthString, generateStkPushPassword } from "../utils/encryption.js"
-import { generateTimestamp, formatPhoneNumber, generateTransactionReference } from "../utils/helpers.js"
-import { setTransactionTimeout, clearTransactionTimeout } from "../utils/timer.js"
-import Transaction from "../models/transaction.model.js" // MongoDB model
-
+import logger from "../utils/mpesa.logger.js"
+import { generateBasicAuthString, generateStkPushPassword } from "../utils/mpesa.encryption.js"
+import { generateTimestamp, formatPhoneNumber, generateTransactionReference } from "../utils/mpesa.helpers.js"
+import { setTransactionTimeout, clearTransactionTimeout } from "../utils/mpesa.timer.js"
+import Transaction from "../models/mpesa.transaction.model.js" 
 /**
  * M-Pesa API Service
  * Handles all interactions with the M-Pesa API

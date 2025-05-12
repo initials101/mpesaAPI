@@ -1,7 +1,7 @@
 import express from "express"
 import { mpesaController } from "../controllers/mpesa.controller.js"
 import { transactionsController } from "../controllers/transactions.controller.js"
-import { validateRequest, validationSchemas } from "../middleware/validator.js"
+import { validateRequest, validationSchemas } from "../middleware/mpesa.js"
 
 const router = express.Router()
 

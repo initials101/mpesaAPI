@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { ApiError } from './errorHandler.js';
+import { ApiError } from './mpesa.errorHandler.js';
 
 /**
  * Middleware factory for request validation

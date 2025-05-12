@@ -4,10 +4,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import config from './config/index.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import { notFound } from './middleware/notFound.js';
+import { errorHandler } from './middleware/mpesa.errorHandler.js';
+import { notFound } from './middleware/mpesa.notFound.js';
 import mpesaRoutes from './routes/mpesa.routes.js';
-import logger from './utils/logger.js';
+import logger from './utils/mpesa.logger.js';
 
 // Initialize express app
 const app = express();

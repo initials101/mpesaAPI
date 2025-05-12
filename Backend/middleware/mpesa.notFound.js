@@ -1,4 +1,4 @@
-import { ApiError } from './errorHandler.js';
+import { ApiError } from './mpesa.errorHandler.js';
 
 /**
  * Middleware to handle 404 errors

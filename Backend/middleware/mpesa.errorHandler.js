@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utils/mpesa.logger.js';
 
 /**
 * Custom error class for API errors

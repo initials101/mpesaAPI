@@ -1,7 +1,7 @@
 import app from './app.js';
 import config from './config/index.js';
-import logger from './utils/logger.js';
-import { connectDB } from './models/db.js';
+import logger from './utils/mpesa.logger.js';
+import { connectDB } from './models/mpesa.db.js';
 
 const PORT = config.server.port || 5000;
 
