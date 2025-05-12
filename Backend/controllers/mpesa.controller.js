@@ -1,8 +1,8 @@
-import mpesaService from '../services/mpesa.service.js';
-import logger from '../utils/logger.js';
-import { ApiError, catchAsync } from '../middleware/errorHandler.js';
-import { formatPhoneNumber } from '../utils/helpers.js';
-import Transaction from '../models/transaction.model.js'; 
+import mpesaService from "../services/mpesa.service.js"
+import logger from "../utils/logger.js"
+import { ApiError, catchAsync } from "../middleware/errorHandler.js"
+import { formatPhoneNumber } from "../utils/helpers.js"
+import Transaction from "../models/transaction.model.js"
 
 /**
  * Controller for M-Pesa API endpoints
@@ -12,34 +12,34 @@ export const mpesaController = {
    * Initiate STK Push payment
    */
   initiateSTKPush: catchAsync(async (req, res) => {
-    const { phoneNumber, amount, accountReference, transactionDesc } = req.body;
+    const { phoneNumber, amount, accountReference, transactionDesc } = req.body
 
-    logger.info('STK Push request received', {
+    logger.info("STK Push request received", {
       phoneNumber,
       amount,
-      accountReference
-    });
+      accountReference,
+    })
 
     const result = await mpesaService.initiateSTKPush({
       phoneNumber: formatPhoneNumber(phoneNumber),
       amount,
       accountReference,
-      transactionDesc
-    });
+      transactionDesc,
+    })
 
-    if (result.ResponseCode === '0') {
+    if (result.ResponseCode === "0") {
       return res.status(200).json({
-        status: 'success',
-        message: 'STK Push initiated successfully',
+        status: "success",
+        message: "STK Push initiated successfully",
         data: {
           checkoutRequestID: result.CheckoutRequestID,
           merchantRequestID: result.MerchantRequestID,
           responseCode: result.ResponseCode,
-          responseDescription: result.ResponseDescription
-        }
-      });
+          responseDescription: result.ResponseDescription,
+        },
+      })
     } else {
-      throw new ApiError(400, `STK Push failed: ${result.ResponseDescription}`);
+      throw new ApiError(400, `STK Push failed: ${result.ResponseDescription}`)
     }
   }),
 
@@ -47,13 +47,13 @@ export const mpesaController = {
    * Send B2C payment
    */
   sendB2CPayment: catchAsync(async (req, res) => {
-    const { phoneNumber, amount, commandID, remarks, occassion } = req.body;
+    const { phoneNumber, amount, commandID, remarks, occassion } = req.body
 
-    logger.info('B2C payment request received', {
+    logger.info("B2C payment request received", {
       phoneNumber,
       amount,
-      commandID
-    });
+      commandID,
+    })
 
     try {
       const result = await mpesaService.sendB2CPayment({
@@ -61,42 +61,38 @@ export const mpesaController = {
         amount,
         commandID,
         remarks,
-        occassion
-      });
+        occassion,
+      })
 
-      if (result.ResponseCode === '0') {
+      if (result.ResponseCode === "0") {
         return res.status(200).json({
-          status: 'success',
-          message: 'B2C payment initiated successfully',
+          status: "success",
+          message: "B2C payment initiated successfully",
           data: {
             conversationID: result.ConversationID,
             originatorConversationID: result.OriginatorConversationID,
             responseCode: result.ResponseCode,
-            responseDescription: result.ResponseDescription
-          }
-        });
+            responseDescription: result.ResponseDescription,
+          },
+        })
       } else {
-        throw new ApiError(400, `B2C payment failed: ${result.ResponseDescription}`);
+        throw new ApiError(400, `B2C payment failed: ${result.ResponseDescription}`)
       }
     } catch (error) {
       // Create a clean error message
-      const errorMessage = typeof error.message === 'string' 
-        ? error.message 
-        : 'Unknown error occurred during B2C payment';
+      const errorMessage =
+        typeof error.message === "string" ? error.message : "Unknown error occurred during B2C payment"
 
       // Log the error with context
-      logger.error('B2C payment controller error:', {
+      logger.error("B2C payment controller error:", {
         error: errorMessage,
         phoneNumber,
         amount,
-        commandID
-      });
+        commandID,
+      })
 
       // Return a clean error response
-      throw new ApiError(
-        error.statusCode || 500,
-        errorMessage
-      );
+      throw new ApiError(error.statusCode || 500, errorMessage)
     }
   }),
 
@@ -104,31 +100,31 @@ export const mpesaController = {
    * Query transaction status
    */
   queryTransactionStatus: catchAsync(async (req, res) => {
-    const { transactionID, identifierType } = req.body;
+    const { transactionID, identifierType } = req.body
 
-    logger.info('Transaction status query received', {
+    logger.info("Transaction status query received", {
       transactionID,
-      identifierType
-    });
+      identifierType,
+    })
 
     const result = await mpesaService.queryTransactionStatus({
       transactionID,
-      identifierType
-    });
+      identifierType,
+    })
 
-    if (result.ResponseCode === '0') {
+    if (result.ResponseCode === "0") {
       return res.status(200).json({
-        status: 'success',
-        message: 'Transaction status query initiated successfully',
+        status: "success",
+        message: "Transaction status query initiated successfully",
         data: {
           conversationID: result.ConversationID,
           originatorConversationID: result.OriginatorConversationID,
           responseCode: result.ResponseCode,
-          responseDescription: result.ResponseDescription
-        }
-      });
+          responseDescription: result.ResponseDescription,
+        },
+      })
     } else {
-      throw new ApiError(400, `Transaction status query failed: ${result.ResponseDescription}`);
+      throw new ApiError(400, `Transaction status query failed: ${result.ResponseDescription}`)
     }
   }),
 
@@ -136,75 +132,97 @@ export const mpesaController = {
    * Query STK Push status
    */
   queryStkStatus: catchAsync(async (req, res) => {
-    const { checkoutRequestID } = req.body;
+    const { checkoutRequestID } = req.body
 
     if (!checkoutRequestID) {
-      throw new ApiError(400, 'Checkout request ID is required');
+      throw new ApiError(400, "Checkout request ID is required")
     }
 
-    logger.info('STK status query received', { checkoutRequestID });
+    logger.info("STK status query received", { checkoutRequestID })
 
     try {
-      const result = await mpesaService.queryStkStatus(checkoutRequestID);
+      // CRITICAL DEBUG: Log the request
+      logger.info(`Controller: About to query STK status for ${checkoutRequestID}`)
+
+      const result = await mpesaService.queryStkStatus(checkoutRequestID)
+
+      // CRITICAL DEBUG: Log the result
+      logger.info(`Controller: STK status query result for ${checkoutRequestID}:`, {
+        resultCode: result.ResultCode,
+        resultDesc: result.ResultDesc,
+        resultType: typeof result.ResultCode,
+      })
 
       // Get transaction from database
-      const transaction = await Transaction.findOne({ checkoutRequestID });
+      const transaction = await Transaction.findOne({ checkoutRequestID })
+
+      // CRITICAL DEBUG: Log the transaction after query
+      if (transaction) {
+        logger.info(`Controller: Transaction ${checkoutRequestID} after query:`, {
+          status: transaction.status,
+          resultCode: transaction.resultCode,
+          resultDesc: transaction.resultDesc,
+          failureReason: transaction.failureReason,
+        })
+      }
 
       return res.status(200).json({
-        status: 'success',
-        message: 'STK status query completed',
+        status: "success",
+        message: "STK status query completed",
         data: {
           responseCode: result.ResultCode,
           responseDescription: result.ResultDesc,
           inProgress: result.inProgress || false,
-          transaction: transaction ? {
-            id: transaction._id,
-            status: transaction.status,
-            amount: transaction.amount,
-            phoneNumber: transaction.phoneNumber,
-            referenceId: transaction.referenceId,
-            failureReason: transaction.failureReason,
-            createdAt: transaction.createdAt,
-            updatedAt: transaction.updatedAt
-          } : null
-        }
-      });
+          transaction: transaction
+            ? {
+                id: transaction._id,
+                status: transaction.status,
+                amount: transaction.amount,
+                phoneNumber: transaction.phoneNumber,
+                referenceId: transaction.referenceId,
+                failureReason: transaction.failureReason,
+                createdAt: transaction.createdAt,
+                updatedAt: transaction.updatedAt,
+              }
+            : null,
+        },
+      })
     } catch (error) {
       // Special handling for "transaction is being processed"
-      if (error.response && 
-          error.response.data && 
-          error.response.data.errorMessage && 
-          error.response.data.errorMessage.includes("transaction is being processed")) {
-
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.errorMessage &&
+        error.response.data.errorMessage.includes("transaction is being processed")
+      ) {
         // Get transaction from database
-        const transaction = await Transaction.findOne({ checkoutRequestID });
+        const transaction = await Transaction.findOne({ checkoutRequestID })
 
         // Return a 200 response with in-progress status
         return res.status(200).json({
-          status: 'success',
-          message: 'Transaction is still being processed',
+          status: "success",
+          message: "Transaction is still being processed",
           data: {
             responseCode: -1, // Custom code for in-progress
             responseDescription: "The transaction is being processed",
             inProgress: true,
-            transaction: transaction ? {
-              id: transaction._id,
-              status: transaction.status,
-              amount: transaction.amount,
-              phoneNumber: transaction.phoneNumber,
-              referenceId: transaction.referenceId,
-              createdAt: transaction.createdAt,
-              updatedAt: transaction.updatedAt
-            } : null
-          }
-        });
+            transaction: transaction
+              ? {
+                  id: transaction._id,
+                  status: transaction.status,
+                  amount: transaction.amount,
+                  phoneNumber: transaction.phoneNumber,
+                  referenceId: transaction.referenceId,
+                  createdAt: transaction.createdAt,
+                  updatedAt: transaction.updatedAt,
+                }
+              : null,
+          },
+        })
       }
 
       // For other errors, throw normally
-      throw new ApiError(
-        error.statusCode || 500,
-        `STK status query failed: ${error.message}`
-      );
+      throw new ApiError(error.statusCode || 500, `STK status query failed: ${error.message}`)
     }
   }),
 
@@ -213,35 +231,35 @@ export const mpesaController = {
    */
   handleStkCallback: catchAsync(async (req, res) => {
     // Respond immediately to M-Pesa
-    res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted' });
+    res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" })
 
     // Process the callback asynchronously
     try {
-      const callbackData = req.body.Body.stkCallback;
+      const callbackData = req.body.Body.stkCallback
 
-      logger.info('STK callback received', {
+      logger.info("STK callback received", {
         requestId: callbackData.CheckoutRequestID,
-        resultCode: callbackData.ResultCode
-      });
+        resultCode: callbackData.ResultCode,
+      })
 
       // Log the full callback data for debugging
-      logger.debug('Full STK callback data:', JSON.stringify(callbackData));
+      logger.debug("Full STK callback data:", JSON.stringify(callbackData))
 
       // Process the callback
-      const updatedTransaction = await mpesaService.handleStkCallback(callbackData);
+      const updatedTransaction = await mpesaService.handleStkCallback(callbackData)
 
       if (updatedTransaction) {
-        logger.info('STK callback processed successfully', {
+        logger.info("STK callback processed successfully", {
           transactionId: updatedTransaction._id,
           status: updatedTransaction.status,
           resultCode: callbackData.ResultCode,
-          resultDesc: callbackData.ResultDesc
-        });
+          resultDesc: callbackData.ResultDesc,
+        })
       } else {
-        logger.warn('STK callback processing completed but no transaction was updated');
+        logger.warn("STK callback processing completed but no transaction was updated")
       }
     } catch (error) {
-      logger.error('Error processing STK callback:', error.message);
+      logger.error("Error processing STK callback:", error.message)
     }
   }),
 
@@ -250,76 +268,76 @@ export const mpesaController = {
    */
   handleB2CResultCallback: catchAsync(async (req, res) => {
     // Respond immediately to M-Pesa
-    res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted' });
+    res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" })
 
     // Process the callback asynchronously
     try {
-      const resultData = req.body.Result;
+      const resultData = req.body.Result
 
-      logger.info('B2C result callback received', {
+      logger.info("B2C result callback received", {
         conversationId: resultData.ConversationID,
-        resultCode: resultData.ResultCode
-      });
+        resultCode: resultData.ResultCode,
+      })
 
       if (resultData.ResultCode === 0) {
         // Payment successful
-        logger.info('B2C payment successful', {
+        logger.info("B2C payment successful", {
           conversationId: resultData.ConversationID,
-          transactionId: resultData.TransactionID
-        });
+          transactionId: resultData.TransactionID,
+        })
 
         // Update transaction in database
-        const transaction = await Transaction.findOne({ conversationId: resultData.ConversationID });
+        const transaction = await Transaction.findOne({ conversationId: resultData.ConversationID })
 
         if (transaction) {
           // Update transaction fields
-          transaction.status = 'success';
-          transaction.transactionId = resultData.TransactionID;
-          transaction.resultCode = resultData.ResultCode.toString();
-          transaction.resultDesc = resultData.ResultDesc;
+          transaction.status = "success"
+          transaction.transactionId = resultData.TransactionID
+          transaction.resultCode = resultData.ResultCode.toString()
+          transaction.resultDesc = resultData.ResultDesc
           transaction.metadata = {
             ...transaction.metadata,
             completedAt: Math.floor(Date.now() / 1000),
-            resultParameters: resultData.ResultParameters
-          };
-          transaction.updatedAt = Math.floor(Date.now() / 1000);
-          
-          await transaction.save();
-          logger.info(`Transaction ${resultData.ConversationID} marked as successful`);
+            resultParameters: resultData.ResultParameters,
+          }
+          transaction.updatedAt = Math.floor(Date.now() / 1000)
+
+          await transaction.save()
+          logger.info(`Transaction ${resultData.ConversationID} marked as successful`)
         } else {
-          logger.warn(`No transaction found for conversation ID: ${resultData.ConversationID}`);
+          logger.warn(`No transaction found for conversation ID: ${resultData.ConversationID}`)
         }
       } else {
         // Payment failed
-        logger.warn('B2C payment failed', {
+        logger.warn("B2C payment failed", {
           conversationId: resultData.ConversationID,
           resultCode: resultData.ResultCode,
-          resultDesc: resultData.ResultDesc
-        });
+          resultDesc: resultData.ResultDesc,
+        })
 
         // Update transaction in database
-        const transaction = await Transaction.findOne({ conversationId: resultData.ConversationID });
+        const transaction = await Transaction.findOne({ conversationId: resultData.ConversationID })
 
         if (transaction) {
           // Update transaction fields
-          transaction.status = 'failed';
-          transaction.resultCode = resultData.ResultCode.toString();
-          transaction.resultDesc = resultData.ResultDesc;
-          transaction.failureReason = resultData.ResultDesc;
+          transaction.status = "failed"
+          transaction.resultCode = resultData.ResultCode.toString()
+          transaction.resultDesc = resultData.ResultDesc
+          transaction.failureReason = resultData.ResultDesc
           transaction.metadata = {
             ...transaction.metadata,
-            completedAt: Math.floor(Date.now() / 1000)
-          };
-          transaction.updatedAt = Math.floor(Date.now() / 1000);
-          
-          await transaction.save();
-          logger.info(`Transaction ${resultData.ConversationID} marked as failed`);
+            completedAt: Math.floor(Date.now() / 1000),
+          }
+          transaction.updatedAt = Math.floor(Date.now() / 1000)
+
+          await transaction.save()
+          logger.info(`Transaction ${resultData.ConversationID} marked as failed`)
         } else {
-          logger.warn(`No transaction found for conversation ID: ${resultData.ConversationID}`);
+          logger.warn(`No transaction found for conversation ID: ${resultData.ConversationID}`)
         }
       }
     } catch (error) {
-      logger.error('Error processing B2C result callback:', error.message);
+      logger.error("Error processing B2C result callback:", error.message)
     }
   }),
 
@@ -328,40 +346,40 @@ export const mpesaController = {
    */
   handleB2CTimeoutCallback: catchAsync(async (req, res) => {
     // Respond immediately to M-Pesa
-    res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted' });
+    res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" })
 
     // Process the callback asynchronously
     try {
       // Log the timeout
-      logger.warn('B2C timeout callback received', {
-        requestData: req.body
-      });
+      logger.warn("B2C timeout callback received", {
+        requestData: req.body,
+      })
 
       // Update transaction in database if possible
       if (req.body.ConversationID || req.body.OriginatorConversationID) {
-        const conversationId = req.body.ConversationID || req.body.OriginatorConversationID;
+        const conversationId = req.body.ConversationID || req.body.OriginatorConversationID
 
-        const transaction = await Transaction.findOne({ conversationId });
+        const transaction = await Transaction.findOne({ conversationId })
 
         if (transaction) {
           // Update transaction fields
-          transaction.status = 'cancelled';
-          transaction.failureReason = 'Timeout - No Response';
+          transaction.status = "cancelled"
+          transaction.failureReason = "Timeout - No Response"
           transaction.metadata = {
             ...transaction.metadata,
             completedAt: Math.floor(Date.now() / 1000),
-            timeoutData: req.body
-          };
-          transaction.updatedAt = Math.floor(Date.now() / 1000);
-          
-          await transaction.save();
-          logger.info(`Transaction ${conversationId} marked as cancelled due to timeout`);
+            timeoutData: req.body,
+          }
+          transaction.updatedAt = Math.floor(Date.now() / 1000)
+
+          await transaction.save()
+          logger.info(`Transaction ${conversationId} marked as cancelled due to timeout`)
         } else {
-          logger.warn(`No transaction found for conversation ID: ${conversationId}`);
+          logger.warn(`No transaction found for conversation ID: ${conversationId}`)
         }
       }
     } catch (error) {
-      logger.error('Error processing B2C timeout callback:', error.message);
+      logger.error("Error processing B2C timeout callback:", error.message)
     }
   }),
 
@@ -369,68 +387,68 @@ export const mpesaController = {
    * Get transaction by ID
    */
   getTransactionById: catchAsync(async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.params
 
-    const transaction = await Transaction.findById(id);
+    const transaction = await Transaction.findById(id)
 
     if (!transaction) {
-      throw new ApiError(404, 'Transaction not found');
+      throw new ApiError(404, "Transaction not found")
     }
 
     return res.status(200).json({
-      status: 'success',
-      data: transaction
-    });
+      status: "success",
+      data: transaction,
+    })
   }),
 
   /**
    * Get transactions by reference
    */
   getTransactionsByReference: catchAsync(async (req, res) => {
-    const { reference } = req.params;
+    const { reference } = req.params
 
-    const transactions = await Transaction.find({ referenceId: reference });
+    const transactions = await Transaction.find({ referenceId: reference })
 
     return res.status(200).json({
-      status: 'success',
+      status: "success",
       results: transactions.length,
-      data: transactions
-    });
+      data: transactions,
+    })
   }),
 
   /**
    * Get all transactions
    */
   getAllTransactions: catchAsync(async (req, res) => {
-    const { status, type, page = 1, limit = 10 } = req.query;
+    const { status, type, page = 1, limit = 10 } = req.query
 
     // Build query
-    const query = {};
-    
+    const query = {}
+
     if (status) {
-      query.status = status.toLowerCase();
+      query.status = status.toLowerCase()
     }
-    
+
     if (type) {
-      query.transactionType = type.toUpperCase();
+      query.transactionType = type.toUpperCase()
     }
 
     // Count total documents
-    const total = await Transaction.countDocuments(query);
-    
+    const total = await Transaction.countDocuments(query)
+
     // Get paginated results
     const transactions = await Transaction.find(query)
       .sort({ createdAt: -1 })
-      .skip((parseInt(page) - 1) * parseInt(limit))
-      .limit(parseInt(limit));
+      .skip((Number.parseInt(page) - 1) * Number.parseInt(limit))
+      .limit(Number.parseInt(limit))
 
     return res.status(200).json({
-      status: 'success',
+      status: "success",
       results: transactions.length,
       total,
-      page: parseInt(page),
-      pages: Math.ceil(total / parseInt(limit)),
-      data: transactions
-    });
-  })
-};
+      page: Number.parseInt(page),
+      pages: Math.ceil(total / Number.parseInt(limit)),
+      data: transactions,
+    })
+  }),
+}

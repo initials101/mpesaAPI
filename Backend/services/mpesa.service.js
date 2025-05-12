@@ -411,6 +411,15 @@ class MpesaService {
         resultDesc,
       })
 
+      // CRITICAL DEBUG: Log the exact type and value of resultCode
+      console.log("CALLBACK DEBUG - Result Code:", {
+        value: resultCode,
+        type: typeof resultCode,
+        isEqualToZeroNumber: resultCode === 0,
+        isEqualToZeroString: resultCode === "0",
+        stringifiedResultCode: JSON.stringify(resultCode),
+      })
+
       // Stop polling for this transaction
       this.stopStatusPolling(checkoutRequestID)
 
@@ -429,10 +438,18 @@ class MpesaService {
       let status = "failed"
       let failureReason = resultDesc
 
-      // FIXED: Properly handle ResultCode 0 as success
-      if (resultCode === 0) {
+      // CRITICAL FIX: Force convert resultCode to string for comparison
+      const resultCodeString = String(resultCode)
+
+      // Similarly, update the handleStkCallback method with the same robust update approach:
+
+      // Now compare as string
+      if (resultCodeString === "0") {
         status = "success"
         failureReason = null
+        logger.info(
+          `Transaction ${checkoutRequestID} is successful with result code ${resultCode} (${typeof resultCode})`,
+        )
 
         // Extract payment details from callback metadata
         const paymentData =
@@ -443,68 +460,246 @@ class MpesaService {
             return acc
           }, {}) || {}
 
-        // Update transaction with payment details
-        transaction.status = status
-        transaction.resultCode = resultCode.toString()
-        transaction.resultDesc = resultDesc
-        transaction.mpesaReceiptNumber = paymentData.MpesaReceiptNumber
-        transaction.transactionId = paymentData.MpesaReceiptNumber
-        transaction.timeoutHandled = true
-        transaction.metadata = {
-          ...transaction.metadata,
-          paymentData,
-          completedAt: Math.floor(Date.now() / 1000),
-        }
-        transaction.updatedAt = Math.floor(Date.now() / 1000)
+        // Log before updating
+        logger.info(
+          `About to update transaction ${checkoutRequestID} status to: ${status} (resultCode: ${resultCode}, type: ${typeof resultCode})`,
+        )
+
+        // CRITICAL FIX: Use direct database update with updateOne to bypass any middleware
+        logger.info(
+          `Setting transaction ${checkoutRequestID} to ${status.toUpperCase()} based on result code ${resultCode}`,
+        )
 
         try {
-          await transaction.save()
-          logger.info(`Transaction ${checkoutRequestID} marked as successful`, {
-            mpesaReceiptNumber: paymentData.MpesaReceiptNumber,
+          // First, update using updateOne for direct database access
+          const updateResult = await Transaction.updateOne(
+            { checkoutRequestID },
+            {
+              $set: {
+                status: status,
+                resultCode: resultCodeString,
+                resultDesc: resultDesc,
+                mpesaReceiptNumber: paymentData.MpesaReceiptNumber,
+                transactionId: paymentData.MpesaReceiptNumber,
+                timeoutHandled: true,
+                metadata: {
+                  ...transaction.metadata,
+                  paymentData,
+                  completedAt: Math.floor(Date.now() / 1000),
+                },
+                updatedAt: Math.floor(Date.now() / 1000),
+                failureReason: null,
+              },
+            },
+            { w: 1 }, // Ensure write concern
+          )
+
+          logger.info(`Direct database update for transaction ${checkoutRequestID}:`, {
+            matchedCount: updateResult.matchedCount,
+            modifiedCount: updateResult.modifiedCount,
+            newStatus: status,
           })
+
+          // Verify the update was successful by fetching the transaction again
+          const verifiedTransaction = await Transaction.findOne({ checkoutRequestID })
+
+          logger.info(`Verification of transaction ${checkoutRequestID} after update:`, {
+            status: verifiedTransaction.status,
+            resultCode: verifiedTransaction.resultCode,
+          })
+
+          // If verification fails, try a second approach
+          if (verifiedTransaction.status !== status) {
+            logger.warn(`Update verification failed for ${checkoutRequestID}. Trying alternative update method.`)
+
+            // Try updating with save method as fallback
+            transaction.status = status
+            transaction.resultCode = resultCodeString
+            transaction.resultDesc = resultDesc
+            transaction.mpesaReceiptNumber = paymentData.MpesaReceiptNumber
+            transaction.transactionId = paymentData.MpesaReceiptNumber
+            transaction.timeoutHandled = true
+            transaction.failureReason = null
+            ;(transaction.metadata = {
+              ...transaction.metadata,
+              paymentData,
+              completedAt: Math.floor(Date.now() / 1000),
+            }),
+              (transaction.updatedAt = Math.floor(Date.now() / 1000))
+
+            await transaction.save()
+
+            // Verify again
+            const reVerifiedTransaction = await Transaction.findOne({ checkoutRequestID })
+            logger.info(`Re-verification after save method for ${checkoutRequestID}:`, {
+              status: reVerifiedTransaction.status,
+              resultCode: reVerifiedTransaction.resultCode,
+            })
+          }
         } catch (updateError) {
           logger.error(`Error updating successful transaction ${checkoutRequestID}:`, updateError)
+
+          // Try one more approach - use findOneAndUpdate
+          try {
+            logger.info(`Attempting findOneAndUpdate for ${checkoutRequestID} as last resort`)
+
+            const updatedDoc = await Transaction.findOneAndUpdate(
+              { checkoutRequestID },
+              {
+                $set: {
+                  status: status,
+                  resultCode: resultCodeString,
+                  resultDesc: resultDesc,
+                  mpesaReceiptNumber: paymentData.MpesaReceiptNumber,
+                  transactionId: paymentData.MpesaReceiptNumber,
+                  timeoutHandled: true,
+                  metadata: {
+                    ...transaction.metadata,
+                    paymentData,
+                    completedAt: Math.floor(Date.now() / 1000),
+                  },
+                  updatedAt: Math.floor(Date.now() / 1000),
+                  failureReason: null,
+                },
+              },
+              { new: true },
+            )
+
+            logger.info(`findOneAndUpdate result for ${checkoutRequestID}:`, {
+              success: !!updatedDoc,
+              status: updatedDoc?.status,
+            })
+          } catch (finalError) {
+            logger.error(`All update attempts failed for ${checkoutRequestID}:`, finalError)
+          }
         }
       } else {
         // Handle specific error codes
-        if (resultCode === 1032) {
+        if (resultCodeString === "1032") {
           status = "cancelled"
           failureReason = "Transaction cancelled by user"
           logger.info(`Transaction ${checkoutRequestID} was cancelled by the user`)
-        } else if (resultCode === 1037) {
+        } else if (resultCodeString === "1037") {
           status = "cancelled"
           failureReason = "Timeout in customer response"
-        } else if (resultCode === 1001) {
+        } else if (resultCodeString === "1001") {
           status = "failed"
           failureReason = "Incorrect PIN"
-        } else if (resultCode === 1019) {
+        } else if (resultCodeString === "1019") {
           status = "failed"
           failureReason = "Transaction already processed"
-        } else if (resultCode === 1025) {
+        } else if (resultCodeString === "1025") {
           status = "failed"
           failureReason = "Insufficient funds"
+        } else if (resultCodeString === "1" && resultDesc && resultDesc.toLowerCase().includes("insufficient")) {
+          status = "failed"
+          failureReason = "Insufficient balance"
+          logger.info(`Transaction ${checkoutRequestID} failed due to insufficient balance`)
         }
 
-        // Update transaction with failure details
-        transaction.status = status
-        transaction.resultCode = resultCode.toString()
-        transaction.resultDesc = resultDesc
-        transaction.failureReason = failureReason
-        transaction.timeoutHandled = true
-        transaction.metadata = {
-          ...transaction.metadata,
-          completedAt: Math.floor(Date.now() / 1000),
-        }
-        transaction.updatedAt = Math.floor(Date.now() / 1000)
+        // Log before updating
+        logger.info(
+          `About to update transaction ${checkoutRequestID} status to: ${status} (resultCode: ${resultCode}, type: ${typeof resultCode})`,
+        )
+
+        // CRITICAL FIX: Use direct database update with updateOne to bypass any middleware
+        logger.info(
+          `Setting transaction ${checkoutRequestID} to ${status.toUpperCase()} based on result code ${resultCode}`,
+        )
 
         try {
-          await transaction.save()
-          logger.info(`Transaction ${checkoutRequestID} marked as ${status}`, {
-            resultCode,
-            failureReason,
+          // First, update using updateOne for direct database access
+          const updateResult = await Transaction.updateOne(
+            { checkoutRequestID },
+            {
+              $set: {
+                status: status,
+                resultCode: resultCodeString,
+                resultDesc: resultDesc,
+                failureReason: failureReason,
+                timeoutHandled: true,
+                metadata: {
+                  ...transaction.metadata,
+                  completedAt: Math.floor(Date.now() / 1000),
+                },
+                updatedAt: Math.floor(Date.now() / 1000),
+              },
+            },
+            { w: 1 }, // Ensure write concern
+          )
+
+          logger.info(`Direct database update for transaction ${checkoutRequestID}:`, {
+            matchedCount: updateResult.matchedCount,
+            modifiedCount: updateResult.modifiedCount,
+            newStatus: status,
           })
+
+          // Verify the update was successful by fetching the transaction again
+          const verifiedTransaction = await Transaction.findOne({ checkoutRequestID })
+
+          logger.info(`Verification of transaction ${checkoutRequestID} after update:`, {
+            status: verifiedTransaction.status,
+            resultCode: verifiedTransaction.resultCode,
+          })
+
+          // If verification fails, try a second approach
+          if (verifiedTransaction.status !== status) {
+            logger.warn(`Update verification failed for ${checkoutRequestID}. Trying alternative update method.`)
+
+            // Try updating with save method as fallback
+            transaction.status = status
+            transaction.resultCode = resultCodeString
+            transaction.resultDesc = resultDesc
+            transaction.failureReason = failureReason
+            transaction.timeoutHandled = true
+            transaction.metadata = {
+              ...transaction.metadata,
+              completedAt: Math.floor(Date.now() / 1000),
+            }
+            transaction.updatedAt = Math.floor(Date.now() / 1000)
+
+            await transaction.save()
+
+            // Verify again
+            const reVerifiedTransaction = await Transaction.findOne({ checkoutRequestID })
+            logger.info(`Re-verification after save method for ${checkoutRequestID}:`, {
+              status: reVerifiedTransaction.status,
+              resultCode: reVerifiedTransaction.resultCode,
+            })
+          }
         } catch (updateError) {
           logger.error(`Error updating failed transaction ${checkoutRequestID}:`, updateError)
+
+          // Try one more approach - use findOneAndUpdate
+          try {
+            logger.info(`Attempting findOneAndUpdate for ${checkoutRequestID} as last resort`)
+
+            const updatedDoc = await Transaction.findOneAndUpdate(
+              { checkoutRequestID },
+              {
+                $set: {
+                  status: status,
+                  resultCode: resultCodeString,
+                  resultDesc: resultDesc,
+                  failureReason: failureReason,
+                  timeoutHandled: true,
+                  metadata: {
+                    ...transaction.metadata,
+                    completedAt: Math.floor(Date.now() / 1000),
+                  },
+                  updatedAt: Math.floor(Date.now() / 1000),
+                },
+              },
+              { new: true },
+            )
+
+            logger.info(`findOneAndUpdate result for ${checkoutRequestID}:`, {
+              success: !!updatedDoc,
+              status: updatedDoc?.status,
+            })
+          } catch (finalError) {
+            logger.error(`All update attempts failed for ${checkoutRequestID}:`, finalError)
+          }
         }
       }
 
@@ -549,6 +744,15 @@ class MpesaService {
 
         logger.info(`STK status query for ${checkoutRequestID} returned code ${resultCode}: ${resultDesc}`)
 
+        // CRITICAL DEBUG: Log the exact type and value of resultCode
+        console.log("CRITICAL DEBUG - Result Code:", {
+          value: resultCode,
+          type: typeof resultCode,
+          isEqualToZeroNumber: resultCode === 0,
+          isEqualToZeroString: resultCode === "0",
+          stringifiedResultCode: JSON.stringify(resultCode),
+        })
+
         // Get transaction from database
         const transaction = await Transaction.findOne({ checkoutRequestID })
 
@@ -558,53 +762,171 @@ class MpesaService {
             let status = "pending" // Default to pending unless we get a definitive result
             let failureReason = null
 
-            // FIXED: Properly handle ResultCode 0 as success
-            if (resultCode === 0) {
-              status = "success" // THIS IS THE FIX - ResultCode 0 means SUCCESS
-              logger.info(`Transaction ${checkoutRequestID} is successful`)
-            } else if (resultCode === 1032) {
+            // CRITICAL DEBUG: Log the exact type and value of resultCode
+            logger.info(`CRITICAL DEBUG - Result Code for ${checkoutRequestID}:`, {
+              value: resultCode,
+              type: typeof resultCode,
+              isEqualToZeroNumber: resultCode === 0,
+              isEqualToZeroString: resultCode === "0",
+              stringifiedResultCode: JSON.stringify(resultCode),
+            })
+
+            // CRITICAL FIX: Force convert resultCode to string for comparison
+            const resultCodeString = String(resultCode)
+
+            // Log the conversion
+            logger.info(`Converted resultCode to string: "${resultCodeString}" (type: ${typeof resultCodeString})`)
+
+            // Now compare as string
+            if (resultCodeString === "0") {
+              status = "success"
+              logger.info(
+                `Transaction ${checkoutRequestID} is successful with result code ${resultCode} (${typeof resultCode})`,
+              )
+            } else if (resultCodeString === "1032") {
               status = "cancelled"
               failureReason = "Transaction cancelled by user"
-            } else if (resultCode === 1037) {
+            } else if (resultCodeString === "1037") {
               status = "cancelled"
               failureReason = "Timeout in customer response"
-            } else if (resultCode === 1001) {
+            } else if (resultCodeString === "1001") {
               status = "failed"
               failureReason = "Incorrect PIN"
-            } else if (resultCode === 1025) {
+            } else if (resultCodeString === "1025") {
               status = "failed"
               failureReason = "Insufficient funds"
+            } else if (resultCodeString === "1") {
+              // Check if this is an insufficient balance message
+              if (resultDesc && resultDesc.toLowerCase().includes("insufficient")) {
+                status = "failed"
+                failureReason = "Insufficient balance"
+                logger.info(`Transaction ${checkoutRequestID} failed due to insufficient balance`)
+              } else {
+                // Keep as pending for other code 1 cases that don't mention insufficient balance
+                logger.info(`Transaction ${checkoutRequestID} is still in progress with code 1: ${resultDesc}`)
+              }
             } else {
               // For other codes, we'll keep it as pending unless it's a definitive failure
-              if (resultCode !== 1 && resultCode !== 2) {
-                // 1 and 2 are often "in progress" codes
+              if (resultCodeString !== "2") {
+                // Only code 2 is treated as "in progress"
                 status = "failed"
                 failureReason = resultDesc
+                logger.info(
+                  `Transaction ${checkoutRequestID} marked as failed with non-standard result code: ${resultCodeString}`,
+                )
               }
             }
 
             // Only update if we have a definitive status change
             if (status !== "pending") {
-              // Update transaction
-              transaction.status = status
-              transaction.resultCode = resultCode.toString()
-              transaction.resultDesc = resultDesc
-              transaction.failureReason = failureReason
-              transaction.timeoutHandled = true
-              transaction.updatedAt = Math.floor(Date.now() / 1000)
+              // Log before updating
+              logger.info(
+                `About to update transaction ${checkoutRequestID} status to: ${status} (resultCode: ${resultCode}, type: ${typeof resultCode})`,
+              )
+
+              // CRITICAL DEBUG: Log the transaction before update
+              logger.info(`Transaction ${checkoutRequestID} before update:`, {
+                id: transaction._id,
+                status: transaction.status,
+                resultCode: transaction.resultCode,
+                resultDesc: transaction.resultDesc,
+              })
+
+              // CRITICAL FIX: Use direct database update with updateOne to bypass any middleware
+              logger.info(
+                `Setting transaction ${checkoutRequestID} to ${status.toUpperCase()} based on result code ${resultCode}`,
+              )
 
               try {
-                await transaction.save()
-                logger.info(`Updated transaction ${checkoutRequestID} status from query: ${status}`)
+                // First, update using updateOne for direct database access
+                const updateResult = await Transaction.updateOne(
+                  { checkoutRequestID },
+                  {
+                    $set: {
+                      status: status,
+                      resultCode: resultCodeString,
+                      resultDesc: resultDesc,
+                      failureReason: failureReason,
+                      timeoutHandled: true,
+                      updatedAt: Math.floor(Date.now() / 1000),
+                    },
+                  },
+                  { w: 1 }, // Ensure write concern
+                )
+
+                logger.info(`Direct database update for transaction ${checkoutRequestID}:`, {
+                  matchedCount: updateResult.matchedCount,
+                  modifiedCount: updateResult.modifiedCount,
+                  newStatus: status,
+                })
+
+                // Verify the update was successful by fetching the transaction again
+                const verifiedTransaction = await Transaction.findOne({ checkoutRequestID })
+
+                logger.info(`Verification of transaction ${checkoutRequestID} after update:`, {
+                  status: verifiedTransaction.status,
+                  resultCode: verifiedTransaction.resultCode,
+                })
+
+                // If verification fails, try a second approach
+                if (verifiedTransaction.status !== status) {
+                  logger.warn(`Update verification failed for ${checkoutRequestID}. Trying alternative update method.`)
+
+                  // Try updating with save method as fallback
+                  transaction.status = status
+                  transaction.resultCode = resultCodeString
+                  transaction.resultDesc = resultDesc
+                  transaction.failureReason = failureReason
+                  transaction.timeoutHandled = true
+                  transaction.updatedAt = Math.floor(Date.now() / 1000)
+
+                  await transaction.save()
+
+                  // Verify again
+                  const reVerifiedTransaction = await Transaction.findOne({ checkoutRequestID })
+                  logger.info(`Re-verification after save method for ${checkoutRequestID}:`, {
+                    status: reVerifiedTransaction.status,
+                    resultCode: reVerifiedTransaction.resultCode,
+                  })
+                }
 
                 // Clear the timeout since we have a definitive status
                 clearTransactionTimeout(checkoutRequestID)
               } catch (updateError) {
                 logger.error(`Error updating transaction ${checkoutRequestID} status from query:`, updateError)
+
+                // Try one more approach - use findOneAndUpdate
+                try {
+                  logger.info(`Attempting findOneAndUpdate for ${checkoutRequestID} as last resort`)
+
+                  const updatedDoc = await Transaction.findOneAndUpdate(
+                    { checkoutRequestID },
+                    {
+                      $set: {
+                        status: status,
+                        resultCode: resultCodeString,
+                        resultDesc: resultDesc,
+                        failureReason: failureReason,
+                        timeoutHandled: true,
+                        updatedAt: Math.floor(Date.now() / 1000),
+                      },
+                    },
+                    { new: true },
+                  )
+
+                  logger.info(`findOneAndUpdate result for ${checkoutRequestID}:`, {
+                    success: !!updatedDoc,
+                    status: updatedDoc?.status,
+                  })
+                } catch (finalError) {
+                  logger.error(`All update attempts failed for ${checkoutRequestID}:`, finalError)
+                }
               }
             } else {
               logger.info(`Transaction ${checkoutRequestID} is still pending after status query`)
             }
+          } else {
+            logger.info(`Transaction ${checkoutRequestID} already has status: ${transaction.status}, not updating`)
           }
         }
       }
