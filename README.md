@@ -35,7 +35,7 @@ A secure, scalable, and developer-friendly Node.js API for integrating with the 
 1. Clone the repository:
    ```bash
    git clone https://github.com/initials101/mpesaAPI.git
-   cd mpesaAPI
+   cd mpesaAPI && cd Backend
    ```
 
 2. Install dependencies:

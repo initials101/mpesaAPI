@@ -53,7 +53,10 @@ export const transactionsController = {
 
             if (updatedTransaction && updatedTransaction.status !== "pending") {
               // Check if this is a transaction that was incorrectly marked as failed
-              if (updatedTransaction.status === "failed" && updatedTransaction.resultCode === "0") {
+              if (
+                updatedTransaction.status === "failed" &&
+                (updatedTransaction.resultCode === "0" || updatedTransaction.resultCode === 0)
+              ) {
                 logger.warn(
                   `[DEBUG] Transaction ${transaction.checkoutRequestID} was incorrectly marked as failed despite result code 0`,
                 )
@@ -238,7 +241,7 @@ export const transactionsController = {
 
   /**
    * Fix incorrectly marked transactions
-   * This is a new method to fix transactions that were incorrectly marked as failed
+   * This method fixes transactions that were incorrectly marked as failed
    * despite having a success result code (0)
    */
   fixIncorrectTransactions: catchAsync(async (req, res) => {
@@ -314,7 +317,8 @@ export const transactionsController = {
     }
 
     // Check if this transaction was incorrectly marked
-    const isIncorrectlyMarked = transaction.status === "failed" && transaction.resultCode === "0"
+    const isIncorrectlyMarked =
+      transaction.status === "failed" && (transaction.resultCode === "0" || transaction.resultCode === 0)
 
     return res.status(200).json({
       status: "success",
