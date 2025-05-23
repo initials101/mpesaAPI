@@ -284,7 +284,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Developer
 
-This project is developed and maintained by [Dennis](https://dennisportfolio-theta.vercel.app/) - Check out my portfolio for more projects and contact information.
+This project is developed and maintained by [Gray](https://dennisportfolio-theta.vercel.app/) - Check out my portfolio for more projects and contact information.
 
 ## Acknowledgements
 
